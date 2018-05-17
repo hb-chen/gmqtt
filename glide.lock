@@ -1,0 +1,133 @@
+hash: f3f712d3eff62385f307bd110b7737d7404bae1a110e0b7d517386635d42121f
+updated: 2018-05-17T22:39:23.97507+08:00
+imports:
+- name: github.com/armon/go-metrics
+  version: 783273d703149aaeb9897cf58613d5af48861c25
+- name: github.com/davecgh/go-spew
+  version: 8991bc29aa16c548c550c7ff78260e27b9ab7c73
+  subpackages:
+  - spew
+- name: github.com/eapache/go-resiliency
+  version: ea41b0fad31007accc7f806884dcdf3da98b79ce
+  subpackages:
+  - breaker
+- name: github.com/eapache/go-xerial-snappy
+  version: bb955e01b9346ac19dc29eb16586c90ded99a98c
+- name: github.com/eapache/queue
+  version: 093482f3f8ce946c05bcba64badd2c82369e084d
+- name: github.com/go-log/log
+  version: 37e2e1f19306361e1fc152a1839f1236149cb4e4
+  subpackages:
+  - log
+- name: github.com/golang/snappy
+  version: 553a641470496b2327abcac10b36396bd98e45c9
+- name: github.com/hashicorp/consul
+  version: fb848fc48818f58690db09d14640513aa6bf3c02
+  subpackages:
+  - api
+  - watch
+- name: github.com/hashicorp/go-cleanhttp
+  version: d5fe4b57a186c716b0e00b8c301cbd9b4182694d
+- name: github.com/hashicorp/go-immutable-radix
+  version: 7f3cd4390caab3250a57f30efdb2a65dd7649ecf
+- name: github.com/hashicorp/go-rootcerts
+  version: 6bb64b370b90e7ef1fa532be9e591a81c3493e00
+- name: github.com/hashicorp/golang-lru
+  version: 0fb14efe8c47ae851c0034ed7a448854d3d34cf3
+  subpackages:
+  - simplelru
+- name: github.com/hashicorp/serf
+  version: 80ab48778deee28e4ea2dc4ef1ebb2c5f4063996
+  subpackages:
+  - coordinate
+- name: github.com/inconshreveable/mousetrap
+  version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
+- name: github.com/micro/go-log
+  version: cbfa9447f9b655f8e66583237e51f40ca9bff860
+- name: github.com/micro/go-micro
+  version: 8fb5e20a224d73d24a73c54f961cdba32b9da2ff
+  subpackages:
+  - broker
+  - broker/codec
+  - broker/codec/json
+  - errors
+  - registry
+- name: github.com/micro/go-rcache
+  version: a581a57b513351792b9f21fc8b95d87b1c5a95da
+- name: github.com/micro/util
+  version: 4b7ed83e8520ab8fe6e5ef61fa2ede94b32f8602
+  subpackages:
+  - go/lib/addr
+  - go/lib/net
+  - go/lib/tls
+- name: github.com/mitchellh/go-homedir
+  version: b8bc1bf767474819792c23f32d8286a45736f1c6
+- name: github.com/mitchellh/hashstructure
+  version: 2bca23e0e452137f789efbc8610126fd8b94f73b
+- name: github.com/mitchellh/mapstructure
+  version: bb74f1db0675b241733089d5a1faa5dd8b0ef57b
+- name: github.com/nu7hatch/gouuid
+  version: 179d4d0c4d8d407a32af483c2354df1d2c91e6c3
+- name: github.com/pborman/uuid
+  version: e790cca94e6cc75c7064b1332e63811d4aae1a53
+- name: github.com/pierrec/lz4
+  version: ed8d4cc3b461464e69798080a0092bd028910298
+- name: github.com/pierrec/xxHash
+  version: a0006b13c722f7f12368c00a3d3c2ae8a999a0c6
+  subpackages:
+  - xxHash32
+- name: github.com/rcrowley/go-metrics
+  version: e2704e165165ec55d062f5919b4b29494e9fa790
+- name: github.com/Shopify/sarama
+  version: f7be6aa2bc7b2e38edf816b08b582782194a1c02
+- name: github.com/spf13/cobra
+  version: ef82de70bb3f60c65fb8eebacbb2d122ef517385
+- name: github.com/spf13/pflag
+  version: 583c0c0531f06d5278b7d917446061adc344b5cd
+- name: github.com/streadway/amqp
+  version: 8e4aba63da9fc5571e01c6a45dc809a58cbc5a68
+- name: github.com/surge/glog
+  version: 2578deb2b95c665e6b1ebabf304ce2085c9e1985
+- name: github.com/surge/netx
+  version: bb29057bfde1fb3290ecf4accf346244b5c494d4
+- name: github.com/surgebase/glog
+  version: 2578deb2b95c665e6b1ebabf304ce2085c9e1985
+- name: github.com/surgemq/message
+  version: 2b7ca1ac6121420133f8df6b94a976d5ca35339a
+- name: github.com/surgemq/surgemq
+  version: c88a02e0d607d081fc28d36513dc01bbf83b1b37
+  subpackages:
+  - auth
+  - service
+  - sessions
+  - topics
+- name: github.com/Unknwon/com
+  version: 28b053d5a2923b87ce8c5a08f3af779894a72758
+- name: golang.org/x/net
+  version: 2491c5de3490fced2f6cff376127c667efeed857
+  subpackages:
+  - bpf
+  - icmp
+  - internal/iana
+  - internal/socket
+  - internal/socks
+  - ipv4
+  - ipv6
+  - proxy
+  - websocket
+- name: gopkg.in/bsm/sarama-cluster.v2
+  version: cf455bc755fe41ac9bb2861e7a961833d9c2ecc3
+testImports:
+- name: github.com/eclipse/paho.mqtt.golang
+  version: 9ec68b7894ac4cd48fc9126e910e571d50eb5d9c
+  subpackages:
+  - packets
+- name: github.com/pmezard/go-difflib
+  version: 792786c7400a136282c1664665ae0a8db921c6c2
+  subpackages:
+  - difflib
+- name: github.com/stretchr/testify
+  version: 12b6f73e6084dad08a7c6e575284b177ecafbc71
+  subpackages:
+  - assert
+  - require

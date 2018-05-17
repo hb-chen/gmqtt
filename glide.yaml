@@ -1,0 +1,31 @@
+package: github.com/hb-go/micro-mq
+import:
+- package: github.com/Shopify/sarama
+  version: ^1.16.0
+- package: github.com/Unknwon/com
+  version: ^1.0.0
+- package: github.com/micro/go-micro
+  version: ^0.8.0
+  subpackages:
+  - broker
+- package: github.com/nu7hatch/gouuid
+- package: github.com/pborman/uuid
+  version: ^1.1.0
+- package: github.com/spf13/cobra
+  version: ^0.0.3
+- package: github.com/streadway/amqp
+- package: github.com/surge/glog
+- package: github.com/surge/netx
+- package: github.com/surgemq/message
+- package: github.com/surgemq/surgemq
+  subpackages:
+  - service
+- package: golang.org/x/net
+- package: gopkg.in/bsm/sarama-cluster.v2
+  version: ^2.1.13
+testImport:
+- package: github.com/eclipse/paho.mqtt.golang
+- package: github.com/stretchr/testify
+  version: ^1.2.1
+  subpackages:
+  - require
