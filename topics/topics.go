@@ -120,20 +120,22 @@ func (this *Manager) Subscribe(topic []byte, qos byte, subscriber interface{}) (
 	// broker订阅
 	// 检查topic是否已订阅
 	// broker topic匹配规则转换
-	brTopic := TopicToBrokerTopic(topic)
-	glog.Errorf("topic subscribe:%v", string(topic))
-	glog.Errorf("topic subscribe:%v", brTopic)
-	_, ok := this.subers[brTopic]
-	if !ok {
-		// @TODO kafka通配符(*)无效问题
-		// broker只订阅一级话题，通过header传递MQTT特有属性QoS、Topic
-		suber, err := this.broker.Subscribe(brTopic, this.subHandler)
-		if err != nil {
-			glog.Errorf("broker topic:%v subscribe err:%v", brTopic, err)
-			return message.QosFailure, err
-		} else {
-			glog.Errorf("broker topic:%v subscribed", brTopic)
-			this.subers[brTopic] = suber
+	if this.broker != nil && this.subHandler != nil {
+		brTopic := TopicToBrokerTopic(topic)
+		glog.Errorf("topic subscribe:%v", string(topic))
+		glog.Errorf("topic subscribe:%v", brTopic)
+		_, ok := this.subers[brTopic]
+		if !ok {
+			// @TODO kafka通配符(*)无效问题
+			// broker只订阅一级话题，通过header传递MQTT特有属性QoS、Topic
+			suber, err := this.broker.Subscribe(brTopic, this.subHandler)
+			if err != nil {
+				glog.Errorf("broker topic:%v subscribe err:%v", brTopic, err)
+				return message.QosFailure, err
+			} else {
+				glog.Errorf("broker topic:%v subscribed", brTopic)
+				this.subers[brTopic] = suber
+			}
 		}
 	}
 
@@ -154,14 +156,16 @@ func (this *Manager) Unsubscribe(topic []byte, subscriber interface{}) error {
 
 	// 节点内取消订阅后刷新broker订阅
 	// topic下所有snodes数为0时取消订阅
-	if nodesNum <= 0 {
-		brTopic := TopicToBrokerTopic(topic)
-		suber, ok := this.subers[brTopic]
-		if ok {
-			if err = suber.Unsubscribe(); err != nil {
-				return err
+	if this.broker != nil && this.subHandler != nil {
+		if nodesNum <= 0 {
+			brTopic := TopicToBrokerTopic(topic)
+			suber, ok := this.subers[brTopic]
+			if ok {
+				if err = suber.Unsubscribe(); err != nil {
+					return err
+				}
+				delete(this.subers, brTopic)
 			}
-			delete(this.subers, brTopic)
 		}
 	}
 
@@ -189,7 +193,7 @@ func TopicToBrokerTopic(topic []byte) string {
 	str := string(topic)
 	subs := strings.Split(str, "/")
 
-	glog.Errorf("topic subs:%v", subs)
+	//glog.Errorf("topic subs:%v", subs)
 
 	if len(subs) > 0 {
 		return strings.Trim(subs[0], "/")

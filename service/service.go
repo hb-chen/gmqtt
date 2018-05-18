@@ -29,7 +29,7 @@ import (
 
 type (
 	OnCompleteFunc func(msg, ack message.Message, err error) error
-	OnPublishFunc  func(msg *message.PublishMessage) error
+	OnPublishFunc func(msg *message.PublishMessage) error
 )
 
 type stat struct {
@@ -167,6 +167,8 @@ func (this *service) start() error {
 
 	glog.Errorf("service start")
 
+	// @TODO processor / receiver / sender三者之一异常退出后的处理，容易导致非正常状态下持续等待
+
 	// Processor is responsible for reading messages out of the buffer and processing
 	// them accordingly.
 	this.wgStarted.Add(1)
@@ -265,7 +267,7 @@ func (this *service) publish(msg *message.PublishMessage, onComplete OnCompleteF
 	//glog.Debugf("service/publish: Publishing %s", msg)
 	_, err := this.writeMessage(msg)
 	if err != nil {
-		return fmt.Errorf("(%s) Error sending %s message: %v", this.cid(), msg.Name(), err)
+		return fmt.Errorf("(%s) sending message:%v error:%v", this.cid(), msg.String(), err)
 	}
 
 	switch msg.QoS() {
@@ -440,6 +442,9 @@ func (this *service) ping(onComplete OnCompleteFunc) error {
 }
 
 func (this *service) isDone() bool {
+	return this.closed > 0
+
+	// @TODO 实现错误
 	select {
 	case <-this.done:
 		return true

@@ -70,11 +70,13 @@ func (this *service) receiver() {
 		}
 
 		for {
-			total, err := this.in.ReadFrom(r)
+			if this.isDone() {
+				return
+			}
 
-			glog.Errorf("receiver total:%v", this.cid(), total)
+			_, err := this.in.ReadFrom(r)
 
-			if err != nil {
+			if err != nil && !this.isDone() {
 				if err != io.EOF {
 					glog.Errorf("(%s) error reading from connection: %v", this.cid(), err)
 				}
@@ -109,9 +111,13 @@ func (this *service) sender() {
 	switch conn := this.conn.(type) {
 	case net.Conn:
 		for {
+			if this.isDone() {
+				return
+			}
+
 			_, err := this.out.WriteTo(conn)
 
-			if err != nil {
+			if err != nil && !this.isDone() {
 				if err != io.EOF {
 					glog.Errorf("(%s) error writing data: %v", this.cid(), err)
 				}

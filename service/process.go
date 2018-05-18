@@ -42,7 +42,7 @@ func (this *service) processor() {
 		this.wgStopped.Done()
 		this.stop()
 
-		//glog.Debugf("(%s) Stopping processor", this.cid())
+		glog.Debugf("(%s) Stopping processor", this.cid())
 	}()
 
 	glog.Debugf("(%s) Starting processor", this.cid())
@@ -53,9 +53,9 @@ func (this *service) processor() {
 		// 1. Find out what message is next and the size of the message
 		mtype, total, err := this.peekMessageSize()
 		if err != nil {
-			//if err != io.EOF {
-			glog.Errorf("(%s) Error peeking next message size: %v", this.cid(), err)
-			//}
+			if err != io.EOF {
+				glog.Errorf("(%s) Error peeking next message size: %v", this.cid(), err)
+			}
 			return
 		}
 
@@ -274,7 +274,7 @@ func (this *service) processAcked(ackq *sessions.Ackqueue) {
 // If QoS == 1, we should send back PUBACK, then take the next step
 // If QoS == 2, we need to put it in the ack queue, send back PUBREC
 func (this *service) processPublish(msg *message.PublishMessage) error {
-	glog.Errorf("(%s) process publish message: %v", this.cid(), msg.Payload())
+	//glog.Errorf("(%s) process publish message: %v", this.cid(), msg.Payload())
 
 	switch msg.QoS() {
 	case message.QosExactlyOnce:
@@ -369,25 +369,27 @@ func (this *service) processUnsubscribe(msg *message.UnsubscribeMessage) error {
 // the ack cycle. This method will get the list of subscribers based on the publish
 // topic, and publishes the message to the list of subscribers.
 func (this *service) onPublish(msg *message.PublishMessage) error {
-	glog.Errorf("(%s) on publish message: %v", this.cid(), string(msg.Payload()))
+	//glog.Errorf("client:(%s) on publish message: %v", this.cid(), msg.String())
 
 	// 发布消息走broker
-	// @TODO Message Header加入MQTT特有属性 QoS、Topic
-	header := map[string]string{
-		topics.MQHeaderMQTTQos:   string(msg.QoS()),
-		topics.MQHeaderMQTTTopic: string(msg.Topic()),
-	}
-	bMsg := broker.Message{
-		Header: header,
-		Body:   msg.Payload(),
-	}
+	if this.broker != nil {
+		// @TODO Message Header加入MQTT特有属性 QoS、Topic
+		header := map[string]string{
+			topics.MQHeaderMQTTQos:   string(msg.QoS()),
+			topics.MQHeaderMQTTTopic: string(msg.Topic()),
+		}
+		bMsg := broker.Message{
+			Header: header,
+			Body:   msg.Payload(),
+		}
 
-	err := this.broker.Publish(topics.TopicToBrokerTopic(msg.Topic()), &bMsg)
-	if err != nil {
-		return err
-	}
+		err := this.broker.Publish(topics.TopicToBrokerTopic(msg.Topic()), &bMsg)
+		if err != nil {
+			return err
+		}
 
-	return nil
+		return nil
+	}
 
 	if msg.Retain() {
 		if err := this.topicsMgr.Retain(msg); err != nil {
@@ -395,7 +397,7 @@ func (this *service) onPublish(msg *message.PublishMessage) error {
 		}
 	}
 
-	err = this.topicsMgr.Subscribers(msg.Topic(), msg.QoS(), &this.subs, &this.qoss)
+	err := this.topicsMgr.Subscribers(msg.Topic(), msg.QoS(), &this.subs, &this.qoss)
 	if err != nil {
 		glog.Errorf("(%s) Error retrieving subscribers list: %v", this.cid(), err)
 		return err

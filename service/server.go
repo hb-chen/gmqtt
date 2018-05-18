@@ -164,10 +164,9 @@ func (this *Server) ListenAndServe(uri string) error {
 	for {
 		conn, err := this.ln.Accept()
 
-		glog.Errorf("accept")
+		glog.Errorf("accept remote addr:%v", conn.RemoteAddr())
 
 		if err != nil {
-			glog.Errorf("accept err:%v", err)
 			// http://zhen.org/blog/graceful-shutdown-of-go-net-dot-listeners/
 			select {
 			case <-this.quit:
@@ -176,6 +175,7 @@ func (this *Server) ListenAndServe(uri string) error {
 			default:
 			}
 
+			glog.Errorf("accept err:%v", err)
 			// Borrowed from go1.3.3/src/pkg/net/http/server.go:1699
 			if ne, ok := err.(net.Error); ok && ne.Temporary() {
 				if tempDelay == 0 {
@@ -195,12 +195,14 @@ func (this *Server) ListenAndServe(uri string) error {
 
 		glog.Errorf("accept success")
 
-		//go this.handleConnection(conn)
-		// @TODO 连接池
-		// 超出一定等待队列后拒绝
-		connPool.Schedule(func() {
+		// @TODO 连接池超出一定等待队列后拒绝，由于是长连接队列应该是0等待，或设计连接数队列等待超时
+		err = connPool.Schedule(func() {
 			this.handleConnection(conn)
 		})
+		if err != nil {
+			glog.Errorf("conn pool schedule error:%v", err)
+			conn.Close()
+		}
 	}
 }
 
@@ -213,21 +215,23 @@ func (this *Server) Publish(msg *message.PublishMessage, onComplete OnCompleteFu
 	glog.Errorf("publish message: %v", string(msg.Payload()))
 
 	// 发布消息走broker
-	// @TODO Message Header加入MQTT特有属性 QoS、Topic
-	header := map[string]string{
-		topics.MQHeaderMQTTQos:   string(msg.QoS()),
-		topics.MQHeaderMQTTTopic: string(msg.Topic()),
-	}
-	bMsg := broker.Message{
-		Header: header,
-		Body:   msg.Payload(),
-	}
-	err := this.broker.Publish(topics.TopicToBrokerTopic(msg.Topic()), &bMsg)
-	if err != nil {
-		return err
-	}
+	if this.broker != nil {
+		// @TODO Message Header加入MQTT特有属性 QoS、Topic
+		header := map[string]string{
+			topics.MQHeaderMQTTQos:   string(msg.QoS()),
+			topics.MQHeaderMQTTTopic: string(msg.Topic()),
+		}
+		bMsg := broker.Message{
+			Header: header,
+			Body:   msg.Payload(),
+		}
+		err := this.broker.Publish(topics.TopicToBrokerTopic(msg.Topic()), &bMsg)
+		if err != nil {
+			return err
+		}
 
-	return nil
+		return nil
+	}
 
 	if err := this.checkConfiguration(); err != nil {
 		return err
@@ -329,14 +333,17 @@ func (this *Server) handleConnection(c io.Closer) (svc *service, err error) {
 
 	req, err := getConnectMessage(conn)
 	if err != nil {
+		glog.Errorf("connect message error:%v", err)
 		if cerr, ok := err.(message.ConnackCode); ok {
-			//glog.Debugf("request   message: %s\nresponse message: %s\nerror           : %v", mreq, resp, err)
+			glog.Debugf("request message: %s\n response message: %s\n error: %v", req, resp, err)
 			resp.SetReturnCode(cerr)
 			resp.SetSessionPresent(false)
 			writeMessage(conn, resp)
 		}
 		return nil, err
 	}
+
+	glog.Errorf("connect message:%v", req)
 
 	// Authenticate the user, if error, return error and exit
 	if err = this.authMgr.Authenticate(string(req.Username()), string(req.Password())); err != nil {

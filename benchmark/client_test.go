@@ -27,10 +27,10 @@ import (
 )
 
 var (
-	messages    int    = 100000
-	publishers  int    = 1
+	messages    int    = 10
+	publishers  int    = 100
 	subscribers int    = 1
-	size        int    = 1024
+	size        int    = 20
 	topic       []byte = []byte("test")
 	qos         byte   = 0
 	nap         int    = 10
@@ -85,7 +85,7 @@ func runClientTest(t testing.TB, cid int, wg *sync.WaitGroup, f func(*service.Cl
 		f(c)
 	}
 
-	//c.Disconnect()
+	c.Disconnect()
 }
 
 func connectToServer(t testing.TB, uri string, cid int) *service.Client {

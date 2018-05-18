@@ -105,13 +105,15 @@ func main() {
 	}()
 
 	if len(mqttPort) <= 0 {
-		mqttPort = "1883"
+		mqttPort = "1884"
 	}
+
+	glog.Debug(0)
 
 	mqttaddr := "tcp://:" + mqttPort
 	if len(wsAddr) > 0 || len(wssAddr) > 0 {
 		addr := "tcp://127.0.0.1:" + mqttPort
-		AddWebsocketHandler("/", addr)
+		AddWebsocketHandler("/mqtt", addr)
 		/* start a plain websocket listener */
 		if len(wsAddr) > 0 {
 			glog.Errorf("wsAddr:%v", wsAddr)
@@ -123,8 +125,8 @@ func main() {
 		}
 	}
 
-	if wsAddr == ":8081" {
-		go console("0.0.0.0:8080")
+	if wsAddr == ":8084" {
+		go console("0.0.0.0:8082")
 	}
 
 	/* create plain MQTT listener */

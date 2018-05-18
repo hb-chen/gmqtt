@@ -17,9 +17,6 @@ import:
 - package: github.com/surge/glog
 - package: github.com/surge/netx
 - package: github.com/surgemq/message
-- package: github.com/surgemq/surgemq
-  subpackages:
-  - service
 - package: golang.org/x/net
 - package: gopkg.in/bsm/sarama-cluster.v2
   version: ^2.1.13

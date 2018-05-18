@@ -60,7 +60,7 @@ type Session struct {
 	// rbuf is the retained PUBLISH message buffer
 	rbuf []byte
 
-	// topics stores all the topis for this session/client
+	// topics stores all the topics for this session/client
 	topics map[string]byte
 
 	// Initialized?

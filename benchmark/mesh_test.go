@@ -24,6 +24,8 @@ import (
 	"github.com/surge/glog"
 	"github.com/surgemq/message"
 	"github.com/hb-go/micro-mq/service"
+	"strconv"
+	"math/rand"
 )
 
 // Usage: go test -run=Mesh
@@ -67,7 +69,7 @@ func startMeshClient(t testing.TB, cid int, wg *sync.WaitGroup) {
 		now := time.Now()
 		since := time.Since(now).Nanoseconds()
 
-		sub := newSubscribeMessage("test", 0)
+		sub := newSubscribeMessage("topic/1", 0)
 		svc.Subscribe(sub,
 			func(msg, ack message.Message, err error) error {
 				subs := atomic.AddInt64(&subdone, 1)
@@ -101,15 +103,18 @@ func startMeshClient(t testing.TB, cid int, wg *sync.WaitGroup) {
 
 		payload := make([]byte, size)
 		msg := message.NewPublishMessage()
-		msg.SetTopic(topic)
+		msg.SetTopic([]byte("topic/1"))
 		msg.SetQoS(qos)
 
 		go func() {
 			now := time.Now()
 
 			for i := 0; i < cnt; i++ {
+				rand := rand.Int63n(10) + 5
+				time.Sleep(time.Millisecond * time.Duration(rand))
 				binary.BigEndian.PutUint32(payload, uint32(cid*cnt+i))
-				msg.SetPayload(payload)
+				//glog.Errorf("msg payload:%v", string(payload))
+				msg.SetPayload([]byte(strconv.Itoa(cid*cnt + i)))
 
 				err := svc.Publish(msg, nil)
 				if err != nil {
@@ -128,7 +133,7 @@ func startMeshClient(t testing.TB, cid int, wg *sync.WaitGroup) {
 			}
 			statMu.Unlock()
 
-			glog.Debugf("(surgemq%d) Sent %d messages in %d ns, %d ns/msg, %d msgs/sec", cid, sent, since, int(float64(since)/float64(cnt)), int(float64(sent)/(float64(since)/float64(time.Second))))
+			glog.Errorf("(surgemq%d) Sent %d messages in %d ns, %d ns/msg, %d msgs/sec", cid, sent, since, int(float64(since)/float64(cnt)), int(float64(sent)/(float64(since)/float64(time.Second))))
 		}()
 
 		select {
@@ -145,6 +150,6 @@ func startMeshClient(t testing.TB, cid int, wg *sync.WaitGroup) {
 		}
 		statMu.Unlock()
 
-		glog.Debugf("(surgemq%d) Received %d messages in %d ns, %d ns/msg, %d msgs/sec", cid, received, since, int(float64(since)/float64(cnt)), int(float64(received)/(float64(since)/float64(time.Second))))
+		glog.Errorf("(surgemq%d) Received %d messages in %d ns, %d ns/msg, %d msgs/sec", cid, received, since, int(float64(since)/float64(cnt)), int(float64(received)/(float64(since)/float64(time.Second))))
 	})
 }
