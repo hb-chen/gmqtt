@@ -3,10 +3,23 @@
 
 ![micro-mq](/doc/img/architecture.jpg "micro-mq")
 
-### 参考内容
+### Components
+- gateway
+- auth
+- broker
+- console
+
+## CMD
+### Protobuf
+```bash
+protoc -I=. \
+  --go_out=. \
+  auth/proto/auth.proto
+```
+
+## 参考内容
 - [[译]百万级WebSockets和Go语言](http://xiecode.cn/post/cn_06_a_million_websockets_and_go/)
     - [[原]A Million WebSockets and Go](https://medium.freecodecamp.org/million-websockets-and-go-cc58418460bb)
-
 - [SurgeMQ](https://github.com/surgemq/surgemq)
-
 - [Micro](http://github.com/micro)
+- [Managing IoT devices with Kafka and MQTT](https://www.ibm.com/blogs/bluemix/2017/01/managing-iot-devices-with-kafka-and-mqtt/)
