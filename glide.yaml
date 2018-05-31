@@ -1,0 +1,10 @@
+package: github.com/hb-go/micro-mq
+import:
+- package: golang.org/x/net
+- package: golang.org/x/crypto
+- package: github.com/smallnest/rpcx
+  version: ^3.1.0-release
+- package: gopkg.in/bsm/sarama-cluster.v2
+  version: ^2.1.13
+- package: github.com/surgemq/message
+- package: github.com/mailru/easygo
