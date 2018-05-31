@@ -9,6 +9,18 @@
 - broker
 - console
 
+### Frameworks
+- [rpcx](https://github.com/smallnest/rpcx)
+- [Echo](https://github.com/labstack/echo)
+
+### 服务依赖
+- 服务注册与发现
+    - Etcd
+    - Zookeeper
+    - Consul
+- MQ
+    - Kafka
+
 ## CMD
 ### Protobuf
 ```bash

@@ -35,12 +35,16 @@ func (a *RpcAuthenticator) Authenticate(id string, cred interface{}) error {
 			Pwd:  pwd,
 		}
 		resp := &auth.Resp{}
-		err := xclient.Call(context.Background(), auth.METHOD_Verify.String(), req, resp)
-		if err != nil {
+
+		if err := xclient.Call(context.Background(), auth.METHOD_Verify.String(), req, resp); err != nil {
 			log.Panic(err)
 		}
 
-		return nil
+		if !resp.Verified {
+			return ErrAuthFailure
+		} else {
+			return nil
+		}
 	}
 
 }

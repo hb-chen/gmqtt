@@ -76,7 +76,7 @@ func NewServer() (srv *Server, err error) {
 		}
 	}()
 
-	if srv.authMgr, err = auth.NewManager(auth.ProviderNameMockSuccess); err != nil {
+	if srv.authMgr, err = auth.NewManager(auth.ProviderNameRpc); err != nil {
 		return nil, err
 	}
 
@@ -257,6 +257,7 @@ func (srv *Server) serveConn(conn net.Conn) (err error) {
 
 	// Authenticate the user, if error, return error and exit
 	if err = srv.authMgr.Authenticate(string(req.Username()), string(req.Password())); err != nil {
+		log.Errorf("authenticate error:%v", err)
 		resp.SetReturnCode(message.ErrBadUsernameOrPassword)
 		resp.SetSessionPresent(false)
 		writeMessage(conn, resp)
