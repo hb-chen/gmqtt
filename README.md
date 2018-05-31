@@ -17,7 +17,7 @@ $ cd auth
 $ go run -tags "etcd" main.go
 
 # 启动Gateway，[-h]帮助查看可选参数
-$ cd gatewat
+$ cd gateway
 $ go run -tags "etcd" main.go
 ```
 
