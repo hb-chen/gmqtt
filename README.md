@@ -3,26 +3,36 @@
 
 ![micro-mq](/doc/img/architecture.jpg "micro-mq")
 
-### Components
+## 运行
+#### 服务依赖
+- 服务注册与发现
+    - Etcd
+- MQ
+    - Kafka
+    
+#### 启动服务
+```bash
+# 启动Auth服务，[-h]帮助查看可选参数
+$ cd auth
+$ go run -tags "etcd" main.go
+
+# 启动Gateway，[-h]帮助查看可选参数
+$ cd gatewat
+$ go run -tags "etcd" main.go
+```
+
+## 组件
 - gateway
 - auth
 - broker
 - console
 
-### Frameworks
+## Frameworks
 - [rpcx](https://github.com/smallnest/rpcx)
 - [Echo](https://github.com/labstack/echo)
 
-### 服务依赖
-- 服务注册与发现
-    - Etcd
-    - Zookeeper
-    - Consul
-- MQ
-    - Kafka
-
-## CMD
-### Protobuf
+## 备用命令
+#### Protobuf
 ```bash
 protoc -I=. \
   --go_out=. \

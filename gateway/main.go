@@ -11,7 +11,7 @@ import (
 
 var (
 	cmdHelp  = flag.Bool("h", false, "帮助")
-	addr     = flag.String("addr", "tcp://127.0.0.1:1883", "etcd address")
+	addr     = flag.String("addr", "tcp://127.0.0.1:1883", "server address")
 	etcdAddr = flag.String("etcdAddr", "localhost:2379", "etcd address")
 )
 
