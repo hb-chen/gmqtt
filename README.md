@@ -6,9 +6,10 @@
 ## 运行
 #### 服务依赖
 - 服务注册与发现
-    - Etcd
+    - [x] Etcd
+    - [ ] Consul
 - MQ
-    - Kafka
+    - [x] Kafka
     
 #### 启动服务
 ```bash
@@ -27,9 +28,17 @@ $ go run -tags "etcd" main.go
 
 ## 组件
 - [x] gateway
+    - [x] sessions
+        - [x] mem
+        - [ ] redis
+    - [x] topic
+        - [x] mem
 - [x] auth
+    - [x] mock
+    - [x] rpc
 - [x] broker
-- console
+    - [x] kafka
+- [ ] console
 
 ## Frameworks
 - [rpcx](https://github.com/smallnest/rpcx)
