@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"io"
 
 	"github.com/smallnest/rpcx/client"
 
@@ -15,17 +16,25 @@ var (
 )
 
 type RpcAuthenticator struct {
+	xClient  client.XClient
 	EtcdAddr *string
 }
 
-func RegistNewRpc(addr string) {
-	Register(ProviderNameRpc, &RpcAuthenticator{EtcdAddr: &addr})
+func RegistNewRpc(addr string) io.Closer {
+	rpcAuth := &RpcAuthenticator{EtcdAddr: &addr}
+	rpcAuth.Init()
+	Register(ProviderNameRpc, rpcAuth)
+
+	return rpcAuth
+}
+
+func (a *RpcAuthenticator) Init() {
+	d := client.NewEtcdDiscovery(conv.ProtoEnumsToRpcxBasePath(auth.BASE_PATH_name), auth.SRV_Auth.String(), []string{*a.EtcdAddr}, nil)
+	xc := client.NewXClient(auth.SRV_Auth.String(), client.Failover, client.RoundRobin, d, client.DefaultOption)
+	a.xClient = xc
 }
 
 func (a *RpcAuthenticator) Authenticate(id string, cred interface{}) error {
-	d := client.NewEtcdDiscovery(conv.ProtoEnumsToRpcxBasePath(auth.BASE_PATH_name), auth.SRV_Auth.String(), []string{*a.EtcdAddr}, nil)
-	xclient := client.NewXClient(auth.SRV_Auth.String(), client.Failover, client.RoundRobin, d, client.DefaultOption)
-	defer xclient.Close()
 
 	if pwd, ok := cred.(string); !ok {
 		return ErrAuthCredType
@@ -36,7 +45,7 @@ func (a *RpcAuthenticator) Authenticate(id string, cred interface{}) error {
 		}
 		resp := &auth.Resp{}
 
-		if err := xclient.Call(context.Background(), auth.METHOD_Verify.String(), req, resp); err != nil {
+		if err := a.xClient.Call(context.Background(), auth.METHOD_Verify.String(), req, resp); err != nil {
 			log.Panic(err)
 		}
 
@@ -46,5 +55,8 @@ func (a *RpcAuthenticator) Authenticate(id string, cred interface{}) error {
 			return nil
 		}
 	}
+}
 
+func (a *RpcAuthenticator) Close() error {
+	return a.xClient.Close()
 }

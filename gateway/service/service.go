@@ -476,7 +476,7 @@ func (svc *Service) publish(msg *message.PublishMessage, onComplete OnCompleteFu
 
 	_, err := svc.writeMessage(msg)
 	if err != nil {
-		return fmt.Errorf("(%d) sending message:%v error:%v", svc.id, msg.String(), err)
+		return fmt.Errorf("sending message error:%v", err)
 	}
 
 	switch msg.QoS() {

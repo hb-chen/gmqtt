@@ -31,7 +31,12 @@ func main() {
 		return
 	}
 
-	auth.RegistNewRpc(*etcdAddr)
+	closer := auth.RegistNewRpc(*etcdAddr)
+	defer func() {
+		if err := closer.Close(); err != nil {
+			log.Warnf("rpc auth close error:%v", err)
+		}
+	}()
 
 	service.AddWebsocketHandler("/mqtt", *addr)
 	go service.ListenAndServeWebsocket(":8080")

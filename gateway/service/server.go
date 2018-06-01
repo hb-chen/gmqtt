@@ -289,7 +289,7 @@ func (srv *Server) serveConn(conn net.Conn) (err error) {
 
 	svc.onpub = func(msg *message.PublishMessage) error {
 		if err := svc.publish(msg, nil); err != nil {
-			log.Errorf("service/onPublish: Error publishing message: %v", err)
+			log.Errorf("service: publishing message error:%v", err)
 			return err
 		}
 

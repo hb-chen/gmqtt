@@ -123,15 +123,14 @@ func (this *Manager) Subscribe(topic []byte, qos byte, subscriber interface{}) (
 	// broker topic匹配规则转换
 	if this.broker != nil && this.subHandler != nil {
 		brTopic := TopicToBrokerTopic(topic)
-		log.Errorf("topic subscribe:%v", string(topic))
-		log.Errorf("topic subscribe:%v", brTopic)
+		log.Debugf("broker topic:%v subscribe", brTopic)
 		_, ok := this.subers[brTopic]
 		if !ok {
 			// @TODO kafka通配符(*)无效问题
 			// broker只订阅一级话题，通过header传递MQTT特有属性QoS、Topic
 			suber, err := this.broker.Subscribe(brTopic, this.subHandler)
 			if err != nil {
-				log.Errorf("broker topic:%v subscribe err:%v", brTopic, err)
+				log.Errorf("broker topic:%v subscribe error:%v", brTopic, err)
 				return message.QosFailure, err
 			} else {
 				log.Infof("broker topic:%v subscribed", brTopic)
@@ -140,8 +139,10 @@ func (this *Manager) Subscribe(topic []byte, qos byte, subscriber interface{}) (
 		}
 	}
 
+	log.Debugf("topic:%v subscribe", string(topic))
 	qos, err := this.p.Subscribe(topic, qos, subscriber)
 	if err != nil {
+		log.Errorf("topic:%v subscribe error:%v", string(topic), err)
 		// @TODO 节点内订阅失败，broker是否需要取消订阅
 	}
 
