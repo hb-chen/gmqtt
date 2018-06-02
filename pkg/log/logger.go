@@ -1,8 +1,20 @@
 package log
 
 import (
+	"log"
+	"os"
+
 	l "github.com/smallnest/rpcx/log"
 )
+
+const (
+	calldepth = 4
+)
+
+func init() {
+	logger := &defaultLogger{log.New(os.Stderr, "", log.LstdFlags|log.Lshortfile)}
+	l.SetLogger(logger)
+}
 
 func Debug(v ...interface{}) {
 	l.Debug(v...)
