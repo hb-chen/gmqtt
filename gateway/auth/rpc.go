@@ -9,6 +9,7 @@ import (
 	"github.com/hb-go/micro-mq/pkg/util/conv"
 	"github.com/hb-go/micro-mq/pkg/log"
 	auth "github.com/hb-go/micro-mq/auth/proto"
+	verify "github.com/hb-go/micro-mq/auth/proto/verify"
 )
 
 var (
@@ -20,7 +21,7 @@ type RpcAuthenticator struct {
 	EtcdAddr *string
 }
 
-func RegistNewRpc(addr string) io.Closer {
+func NewRpcRegister(addr string) io.Closer {
 	rpcAuth := &RpcAuthenticator{EtcdAddr: &addr}
 	rpcAuth.Init()
 	Register(ProviderNameRpc, rpcAuth)
@@ -39,11 +40,11 @@ func (a *RpcAuthenticator) Authenticate(id string, cred interface{}) error {
 	if pwd, ok := cred.(string); !ok {
 		return ErrAuthCredType
 	} else {
-		req := &auth.Req{
+		req := &verify.VerifyReq{
 			Name: id,
 			Pwd:  pwd,
 		}
-		resp := &auth.Resp{}
+		resp := &verify.VerifyResp{}
 
 		if err := a.xClient.Call(context.Background(), auth.METHOD_Verify.String(), req, resp); err != nil {
 			log.Panic(err)

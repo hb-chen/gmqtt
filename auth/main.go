@@ -7,8 +7,8 @@ import (
 	metrics "github.com/rcrowley/go-metrics"
 	"github.com/smallnest/rpcx/server"
 	"github.com/smallnest/rpcx/serverplugin"
-	"github.com/hb-go/micro-mq/pkg/log"
 
+	"github.com/hb-go/micro-mq/pkg/log"
 	"github.com/hb-go/micro-mq/auth/handler"
 	"github.com/hb-go/micro-mq/auth/proto"
 	"github.com/hb-go/micro-mq/pkg/util/conv"
@@ -33,7 +33,8 @@ func main() {
 	s := server.NewServer()
 	addRegistryPlugin(s)
 
-	s.RegisterName(proto.SRV_Auth.String(), new(handler.Auth), "")
+	handler.Register(s)
+
 	s.Serve("tcp", *addr)
 }
 
