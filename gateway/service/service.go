@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"sync/atomic"
 
 	"github.com/mailru/easygo/netpoll"
 	"github.com/surgemq/message"
@@ -41,14 +42,16 @@ func init() {
 	}
 }
 
-type Service struct {
+type service struct {
 	id   int64
 	conn net.Conn
 
 	// broker
 	broker broker.Broker
 
-	sess     *sessions.Session
+	sess *sessions.Session
+
+	sessMgr  *sessions.Manager
 	topicMgr *topics.Manager
 
 	wgStarted sync.WaitGroup
@@ -59,9 +62,26 @@ type Service struct {
 	subs  []interface{}
 	qoss  []byte
 	rmsgs []*message.PublishMessage
+
+	// Whether this is service is closed or not.
+	closed int64
 }
 
-func (svc *Service) start() (err error) {
+func (svc *service) start() (err error) {
+	defer func() {
+		svc.stop()
+	}()
+
+	// If this is a recovered session, then add any topics it subscribed before
+	topics, qoss, err := svc.sess.Topics()
+	if err != nil {
+		return err
+	} else {
+		for i, t := range topics {
+			svc.topicMgr.Subscribe([]byte(t), qoss[i], &svc.onpub)
+		}
+	}
+
 	// netpoll实现
 	desc := netpoll.Must(netpoll.HandleRead(svc.conn))
 	defer func() {
@@ -95,7 +115,6 @@ func (svc *Service) start() (err error) {
 			log.Errorf("poller read error:%v", err)
 
 			if err == io.EOF {
-				log.Infof("service exit")
 				exit <- true
 			}
 
@@ -128,6 +147,9 @@ func (svc *Service) start() (err error) {
 			err = svc.process(msg)
 			if err != nil {
 				log.Errorf("message process error:%v", err)
+				if err == errDisconnect {
+					exit <- true
+				}
 			}
 		}
 
@@ -141,15 +163,80 @@ func (svc *Service) start() (err error) {
 	//go svc.receiver()
 
 	<-exit
+	log.Infof("service exit")
 
 	return nil
 }
 
-func (svc *Service) stop() {
+func (svc *service) stop() {
+	defer func() {
+		// Let's recover from panic
+		if r := recover(); r != nil {
+			log.Errorf("(%s) Recovering from panic: %v", svc.id, r)
+		}
+	}()
 
+	doit := atomic.CompareAndSwapInt64(&svc.closed, 0, 1)
+	if !doit {
+		return
+	}
+
+	log.Debugf("service stop")
+
+	// Close quit channel, effectively telling all the goroutines it's time to quit
+	//if svc.done != nil {
+	//	log.Debugf("(%s) closing this.done", svc.id)
+	//	close(svc.done)
+	//}
+
+	// Close the network connection
+	if svc.conn != nil {
+		log.Debugf("(%s) closing this.conn", svc.id)
+		svc.conn.Close()
+	}
+
+	// Wait for all the goroutines to stop.
+	//svc.wgStopped.Wait()
+
+	//log.Debugf("(%s) Received %d bytes in %d messages.", this.cid(), this.inStat.bytes, this.inStat.msgs)
+	//log.Debugf("(%s) Sent %d bytes in %d messages.", this.cid(), this.outStat.bytes, this.outStat.msgs)
+
+	// Unsubscribe from all the topics for this client, only for the server side though
+	if svc.sess != nil {
+		topics, _, err := svc.sess.Topics()
+		if err != nil {
+			log.Errorf("(%s/%d): %v", svc.id, svc.id, err)
+		} else {
+			for _, t := range topics {
+				if err := svc.topicMgr.Unsubscribe([]byte(t), &svc.onpub); err != nil {
+					log.Errorf("(%s): Error unsubscribing topic %q: %v", svc.id, t, err)
+				}
+			}
+		}
+	}
+
+	// Publish will message if WillFlag is set. Server side only.
+	if svc.sess.Cmsg.WillFlag() && svc.sess.Will != nil {
+		log.Infof("(%s) service/stop: connection unexpectedly closed. Sending Will.", svc.id)
+		svc.onPublish(svc.sess.Will)
+	}
+
+	// Remove the client topics manager
+	//if svc.client {
+	//	topics.Unregister(svc.sess.ID())
+	//}
+
+	// Remove the session from session store if it's suppose to be clean session
+	if svc.sess.Cmsg.CleanSession() && svc.sessMgr != nil {
+		svc.sessMgr.Del(svc.sess.ID())
+	} else {
+		svc.sessMgr.Save(svc.sess.ID())
+	}
+
+	svc.conn = nil
 }
 
-func (this *Service) process(msg message.Message) error {
+func (svc *service) process(msg message.Message) error {
 	log.Debugf("process msg:%v", msg)
 	var err error = nil
 
@@ -159,87 +246,87 @@ func (this *Service) process(msg message.Message) error {
 		// If QoS == 0, we should just take the next step, no ack required
 		// If QoS == 1, we should send back PUBACK, then take the next step
 		// If QoS == 2, we need to put it in the ack queue, send back PUBREC
-		err = this.processPublish(msg)
+		err = svc.processPublish(msg)
 
 	case *message.PubackMessage:
 		// For PUBACK message, it means QoS 1, we should send to ack queue
-		this.sess.Pub1ack.Ack(msg)
-		this.processAcked(this.sess.Pub1ack)
+		svc.sess.Pub1ack.Ack(msg)
+		svc.processAcked(svc.sess.Pub1ack)
 
 	case *message.PubrecMessage:
 		// For PUBREC message, it means QoS 2, we should send to ack queue, and send back PUBREL
-		if err = this.sess.Pub2out.Ack(msg); err != nil {
+		if err = svc.sess.Pub2out.Ack(msg); err != nil {
 			break
 		}
 
 		resp := message.NewPubrelMessage()
 		resp.SetPacketId(msg.PacketId())
-		_, err = this.writeMessage(resp)
+		_, err = svc.writeMessage(resp)
 
 	case *message.PubrelMessage:
 		// For PUBREL message, it means QoS 2, we should send to ack queue, and send back PUBCOMP
-		if err = this.sess.Pub2in.Ack(msg); err != nil {
+		if err = svc.sess.Pub2in.Ack(msg); err != nil {
 			break
 		}
 
-		this.processAcked(this.sess.Pub2in)
+		svc.processAcked(svc.sess.Pub2in)
 
 		resp := message.NewPubcompMessage()
 		resp.SetPacketId(msg.PacketId())
-		_, err = this.writeMessage(resp)
+		_, err = svc.writeMessage(resp)
 
 	case *message.PubcompMessage:
 		// For PUBCOMP message, it means QoS 2, we should send to ack queue
-		if err = this.sess.Pub2out.Ack(msg); err != nil {
+		if err = svc.sess.Pub2out.Ack(msg); err != nil {
 			break
 		}
 
-		this.processAcked(this.sess.Pub2out)
+		svc.processAcked(svc.sess.Pub2out)
 
 	case *message.SubscribeMessage:
 		// For SUBSCRIBE message, we should add subscriber, then send back SUBACK
-		return this.processSubscribe(msg)
+		return svc.processSubscribe(msg)
 
 	case *message.SubackMessage:
 		// For SUBACK message, we should send to ack queue
-		this.sess.Suback.Ack(msg)
-		this.processAcked(this.sess.Suback)
+		svc.sess.Suback.Ack(msg)
+		svc.processAcked(svc.sess.Suback)
 
 	case *message.UnsubscribeMessage:
 		// For UNSUBSCRIBE message, we should remove subscriber, then send back UNSUBACK
-		return this.processUnsubscribe(msg)
+		return svc.processUnsubscribe(msg)
 
 	case *message.UnsubackMessage:
 		// For UNSUBACK message, we should send to ack queue
-		this.sess.Unsuback.Ack(msg)
-		this.processAcked(this.sess.Unsuback)
+		svc.sess.Unsuback.Ack(msg)
+		svc.processAcked(svc.sess.Unsuback)
 
 	case *message.PingreqMessage:
 		// For PINGREQ message, we should send back PINGRESP
 		resp := message.NewPingrespMessage()
-		_, err = this.writeMessage(resp)
+		_, err = svc.writeMessage(resp)
 
 	case *message.PingrespMessage:
-		this.sess.Pingack.Ack(msg)
-		this.processAcked(this.sess.Pingack)
+		svc.sess.Pingack.Ack(msg)
+		svc.processAcked(svc.sess.Pingack)
 
 	case *message.DisconnectMessage:
 		// For DISCONNECT message, we should quit
-		this.sess.Cmsg.SetWillFlag(false)
+		svc.sess.Cmsg.SetWillFlag(false)
 		return errDisconnect
 
 	default:
-		return fmt.Errorf("(%d) invalid message type %s.", this.id, msg.Name())
+		return fmt.Errorf("(%d) invalid message type %s.", svc.id, msg.Name())
 	}
 
 	if err != nil {
-		log.Debugf("(%s) Error processing acked message: %v", this.id, err)
+		log.Debugf("(%s) Error processing acked message: %v", svc.id, err)
 	}
 
 	return err
 }
 
-func (svc *Service) processPublish(msg *message.PublishMessage) error {
+func (svc *service) processPublish(msg *message.PublishMessage) error {
 	log.Debugf("process publish msg:%v", msg)
 
 	switch msg.QoS() {
@@ -269,7 +356,7 @@ func (svc *Service) processPublish(msg *message.PublishMessage) error {
 	return fmt.Errorf("(%d) invalid message QoS %d.", svc.id, msg.QoS())
 }
 
-func (svc *Service) processAcked(ackq *sessions.Ackqueue) {
+func (svc *service) processAcked(ackq *sessions.Ackqueue) {
 	log.Debugf("process acked")
 
 	for _, ackmsg := range ackq.Acked() {
@@ -296,7 +383,7 @@ func (svc *Service) processAcked(ackq *sessions.Ackqueue) {
 			continue
 		}
 
-		//log.Debugf("(%s) Processing acked message: %v", this.cid(), ack)
+		//log.Debugf("(%s) Processing acked message: %v", svc.cid(), ack)
 
 		// - PUBACK if it's QoS 1 message. This is on the client side.
 		// - PUBREL if it's QoS 2 message. This is on the server side.
@@ -349,7 +436,7 @@ func (svc *Service) processAcked(ackq *sessions.Ackqueue) {
 	}
 }
 
-func (svc *Service) processSubscribe(msg *message.SubscribeMessage) error {
+func (svc *service) processSubscribe(msg *message.SubscribeMessage) error {
 	log.Debugf("process subscribe msg:%v", msg)
 	resp := message.NewSubackMessage()
 	resp.SetPacketId(msg.PacketId())
@@ -395,7 +482,7 @@ func (svc *Service) processSubscribe(msg *message.SubscribeMessage) error {
 	return nil
 }
 
-func (svc *Service) processUnsubscribe(msg *message.UnsubscribeMessage) error {
+func (svc *service) processUnsubscribe(msg *message.UnsubscribeMessage) error {
 	log.Debugf("process unsubscribe msg:%v", msg)
 	topics := msg.Topics()
 
@@ -413,13 +500,13 @@ func (svc *Service) processUnsubscribe(msg *message.UnsubscribeMessage) error {
 }
 
 // writeMessage() writes a message to the outgoing buffer
-func (svc *Service) writeMessage(msg message.Message) (int, error) {
+func (svc *service) writeMessage(msg message.Message) (int, error) {
 	err := writeMessage(svc.conn, msg)
 	return 0, err
 }
 
-func (svc *Service) onPublish(msg *message.PublishMessage) error {
-	//log.Errorf("client:(%s) on publish message: %v", this.cid(), msg.String())
+func (svc *service) onPublish(msg *message.PublishMessage) error {
+	//log.Errorf("client:(%s) on publish message: %v", svc.cid(), msg.String())
 
 	// 发布消息走broker
 	if svc.broker != nil {
@@ -455,7 +542,7 @@ func (svc *Service) onPublish(msg *message.PublishMessage) error {
 
 	msg.SetRetain(false)
 
-	//log.Debugf("(%s) Publishing to topic %q and %d subscribers", this.cid(), string(msg.Topic()), len(this.subs))
+	//log.Debugf("(%s) Publishing to topic %q and %d subscribers", svc.cid(), string(msg.Topic()), len(svc.subs))
 	for _, s := range svc.subs {
 		if s != nil {
 			fn, ok := s.(*OnPublishFunc)
@@ -471,7 +558,7 @@ func (svc *Service) onPublish(msg *message.PublishMessage) error {
 	return nil
 }
 
-func (svc *Service) publish(msg *message.PublishMessage, onComplete OnCompleteFunc) error {
+func (svc *service) publish(msg *message.PublishMessage, onComplete OnCompleteFunc) error {
 	log.Debugf("service/publish: Publishing %s", msg)
 
 	_, err := svc.writeMessage(msg)

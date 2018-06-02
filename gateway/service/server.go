@@ -48,6 +48,11 @@ type Server struct {
 	// topicsMgr is the topics manager for keeping track of subscriptions
 	topicMgr *topics.Manager
 
+	// A list of services created by the server. We keep track of them so we can
+	// gracefully shut them down if they are still alive when the server goes down.
+	svcs   []*service
+	svcsMu sync.RWMutex
+
 	//serviceMapMu sync.RWMutex
 	//serviceMap   map[string]*service
 
@@ -125,7 +130,10 @@ func (srv *Server) ListenAndServe(network, address string) error {
 		log.Errorf("listen and serve error:%v", err)
 		return err
 	}
-	defer ln.Close()
+
+	defer func() {
+		srv.Close()
+	}()
 
 	log.Infof("listen and serve")
 
@@ -190,6 +198,33 @@ func (srv *Server) ListenAndServe(network, address string) error {
 			conn.Close()
 		}
 	}
+}
+
+// Close terminates the server by shutting down all the client connections and closing
+// the listener. It will, as best it can, clean up after itself.
+func (srv *Server) Close() error {
+	// By closing the quit channel, we are telling the server to stop accepting new
+	// connection.
+	//close(srv.quit)
+
+	// We then close the net.Listener, which will force Accept() to return if it's
+	// blocked waiting for new connections.
+	srv.ln.Close()
+
+	for _, svc := range srv.svcs {
+		log.Infof("stopping service %d", svc.id)
+		svc.stop()
+	}
+
+	if srv.sessMgr != nil {
+		srv.sessMgr.Close()
+	}
+
+	if srv.topicMgr != nil {
+		srv.topicMgr.Close()
+	}
+
+	return nil
 }
 
 func (srv *Server) serveConn(conn net.Conn) (err error) {
@@ -268,9 +303,10 @@ func (srv *Server) serveConn(conn net.Conn) (err error) {
 		req.SetKeepAlive(30)
 	}
 
-	svc := &Service{
+	svc := &service{
 		conn:     conn,
 		broker:   srv.broker,
+		sessMgr:  srv.sessMgr,
 		topicMgr: srv.topicMgr,
 	}
 
@@ -296,16 +332,19 @@ func (srv *Server) serveConn(conn net.Conn) (err error) {
 		return nil
 	}
 
+	srv.svcsMu.Lock()
+	srv.svcs = append(srv.svcs, svc)
+	srv.svcsMu.Unlock()
+
 	if err := svc.start(); err != nil {
 		log.Errorf("serve conn service error:%v", err)
-		svc.stop()
 		return err
 	}
 
 	return nil
 }
 
-func (this *Server) subHandler(p broker.Publication) error {
+func (srv *Server) subHandler(p broker.Publication) error {
 	log.Debug("[sub] received message:", string(p.Message().Body), "header", p.Message().Header)
 
 	// @TODO msg Encode/Decode
@@ -323,19 +362,19 @@ func (this *Server) subHandler(p broker.Publication) error {
 	msg.SetPayload(p.Message().Body)
 
 	if msg.Retain() {
-		if err := this.topicMgr.Retain(msg); err != nil {
+		if err := srv.topicMgr.Retain(msg); err != nil {
 			log.Errorf("Error retaining message: %v", err)
 		}
 	}
 
-	if err := this.topicMgr.Subscribers(msg.Topic(), msg.QoS(), &this.subs, &this.qoss); err != nil {
+	if err := srv.topicMgr.Subscribers(msg.Topic(), msg.QoS(), &srv.subs, &srv.qoss); err != nil {
 		return err
 	}
 
 	msg.SetRetain(false)
 
-	//log.Debugf("(%s) Publishing to topic %q and %d subscribers", this.cid(), string(msg.Topic()), len(this.subs))
-	for _, s := range this.subs {
+	//log.Debugf("(%s) Publishing to topic %q and %d subscribers", srv.cid(), string(msg.Topic()), len(srv.subs))
+	for _, s := range srv.subs {
 		if s != nil {
 			fn, ok := s.(*OnPublishFunc)
 			if !ok {
@@ -350,7 +389,7 @@ func (this *Server) subHandler(p broker.Publication) error {
 	return nil
 }
 
-func (this *Server) getSession(svc *Service, req *message.ConnectMessage, resp *message.ConnackMessage) error {
+func (srv *Server) getSession(svc *service, req *message.ConnectMessage, resp *message.ConnackMessage) error {
 	// If CleanSession is set to 0, the server MUST resume communications with the
 	// client based on state from the current session, as identified by the client
 	// identifier. If there is no session associated with the client identifier the
@@ -375,7 +414,8 @@ func (this *Server) getSession(svc *Service, req *message.ConnectMessage, resp *
 	// If CleanSession is NOT set, check the session store for existing session.
 	// If found, return it.
 	if !req.CleanSession() {
-		if svc.sess, err = this.sessMgr.Get(cid); err == nil {
+		if svc.sess, err = srv.sessMgr.Get(cid); err == nil {
+			log.Debugf("stored session:%v", cid)
 			resp.SetSessionPresent(true)
 
 			if err := svc.sess.Update(req); err != nil {
@@ -386,10 +426,10 @@ func (this *Server) getSession(svc *Service, req *message.ConnectMessage, resp *
 
 	// If CleanSession, or no existing session found, then create a new one
 	if svc.sess == nil {
-		if svc.sess, err = this.sessMgr.New(cid); err != nil {
+		if svc.sess, err = srv.sessMgr.New(cid); err != nil {
 			return err
 		}
-
+		log.Debugf("new session:%v", cid)
 		resp.SetSessionPresent(false)
 
 		if err := svc.sess.Init(req); err != nil {

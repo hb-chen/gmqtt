@@ -31,7 +31,7 @@ func main() {
 		return
 	}
 
-	closer := auth.RegistNewRpc(*etcdAddr)
+	closer := auth.NewRpcRegister(*etcdAddr)
 	defer func() {
 		if err := closer.Close(); err != nil {
 			log.Warnf("rpc auth close error:%v", err)
