@@ -31,6 +31,9 @@ func main() {
 		return
 	}
 
+	log.SetColor(true)
+	log.SetLevel(log.DEBUG)
+
 	closer := auth.NewRpcRegister(*etcdAddr)
 	defer func() {
 		if err := closer.Close(); err != nil {

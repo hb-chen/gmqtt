@@ -5,15 +5,71 @@ import (
 	"os"
 
 	l "github.com/smallnest/rpcx/log"
+	"github.com/fatih/color"
 )
 
 const (
-	calldepth = 4
+	DEBUG    Lvl = iota
+	INFO
+	WARN
+	ERROR
+	OFF
+	fatalLvl
+	panicLvl
+)
+
+const (
+	calldepth = 5
+)
+
+var (
+	level       = DEBUG
+	colorEnable = true
 )
 
 func init() {
-	logger := &defaultLogger{log.New(os.Stderr, "", log.LstdFlags|log.Lshortfile)}
+	logger := &defaultLogger{Logger: log.New(os.Stderr, "", log.LstdFlags|log.Lshortfile), calldepth: calldepth}
 	l.SetLogger(logger)
+}
+
+type (
+	Lvl uint
+	colorFunc func(format string, a ...interface{}) string
+)
+
+func (lvl Lvl) String() string {
+	switch lvl {
+	case DEBUG:
+		return "DEBUG"
+	case INFO:
+		return lvl.colorString("INFO", color.GreenString)
+	case WARN:
+		return lvl.colorString("WARN", color.YellowString)
+	case ERROR:
+		return lvl.colorString("ERROR", color.RedString)
+	case fatalLvl:
+		return lvl.colorString("FATAL", color.MagentaString)
+	case panicLvl:
+		return "PANIC"
+	default:
+		return ""
+	}
+}
+
+func (lvl Lvl) colorString(str string, f colorFunc) string {
+	if colorEnable {
+		return f(str)
+	} else {
+		return str
+	}
+}
+
+func SetLevel(lvl Lvl) {
+	level = lvl
+}
+
+func SetColor(enable bool) {
+	colorEnable = enable
 }
 
 func Debug(v ...interface{}) {
