@@ -35,7 +35,10 @@ func main() {
 
 	handler.Register(s)
 
-	s.Serve("tcp", *addr)
+	err := s.Serve("tcp", *addr)
+	if err!=nil {
+		log.Fatalf("auth serve exit error:%v", err)
+	}
 }
 
 func addRegistryPlugin(s *server.Server) {

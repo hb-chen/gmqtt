@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package proto;
+
+enum BASE_PATH {
+    rpc = 0;
+}
+
+enum SRV {
+    Auth = 0;
+}
+
+enum METHOD {
+    Verify = 0;
+}
