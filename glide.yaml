@@ -8,3 +8,7 @@ import:
   version: ^2.1.13
 - package: github.com/surgemq/message
 - package: github.com/mailru/easygo
+- package: github.com/gomodule/redigo
+  version: ^2.0.0
+- package: github.com/eclipse/paho.mqtt.golang
+  version: ^1.1.1

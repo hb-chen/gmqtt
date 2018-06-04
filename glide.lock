@@ -1,5 +1,5 @@
-hash: e53ed2a638871c3bce2039a051a3b9c4e3b86c6ef14eb09f8c71a5b66f35d7b4
-updated: 2018-05-24T17:56:06.173902+08:00
+hash: e2145e22550c5661fca83701335c6f75d3359e2d77339a5fecd00608ecc98a2d
+updated: 2018-06-04T20:18:48.10846+08:00
 imports:
 - name: github.com/aead/chacha20
   version: e2538746bfea853aaa589feb8ec46bd46ee78f86
@@ -20,7 +20,7 @@ imports:
   subpackages:
   - generic
 - name: github.com/coreos/etcd
-  version: b4f84f046be39c680ddb080ebb99d3a7538c44be
+  version: 438e6750ee4dd3861c83514e405adf2f3e437e4c
   subpackages:
   - client
   - pkg/pathutil
@@ -50,6 +50,10 @@ imports:
   version: bb955e01b9346ac19dc29eb16586c90ded99a98c
 - name: github.com/eapache/queue
   version: 093482f3f8ce946c05bcba64badd2c82369e084d
+- name: github.com/eclipse/paho.mqtt.golang
+  version: 36d01c2b4cbeb3d2a12063e4880ce30800af9560
+  subpackages:
+  - packets
 - name: github.com/facebookgo/clock
   version: 600d898af40aa09a7a93ecb9265d87b0504b6f03
 - name: github.com/fatih/color
@@ -64,6 +68,11 @@ imports:
   - proto
 - name: github.com/golang/snappy
   version: 553a641470496b2327abcac10b36396bd98e45c9
+- name: github.com/gomodule/redigo
+  version: 9c11da706d9b7902c6da69c592f75637793fe121
+  subpackages:
+  - internal
+  - redis
 - name: github.com/grandcat/zeroconf
   version: df75bb3ccae13e625e5b60e68d9c9590056dded1
 - name: github.com/hashicorp/consul
@@ -85,7 +94,7 @@ imports:
   subpackages:
   - coordinate
 - name: github.com/influxdata/influxdb
-  version: e3d7095d1426b2e80c7184d910149c885401dfe1
+  version: 5ec7b901bbcb2be9d94a1b87504cc0fc1d25e9c8
   subpackages:
   - client
   - models
@@ -103,7 +112,7 @@ imports:
 - name: github.com/lucas-clemente/aes12
   version: cd47fb39b79f867c6e4e5cd39cf7abd799f71670
 - name: github.com/lucas-clemente/quic-go
-  version: fd906aeb243bdeef137ddcf6f642b04a3c2fe94b
+  version: 1fc6c5a14c1a49d580b59ae7132af0f1d24a1f74
   subpackages:
   - internal/ackhandler
   - internal/congestion
@@ -127,7 +136,7 @@ imports:
 - name: github.com/mattn/go-isatty
   version: 6ca4dbf54d38eea1a992b3c722a76a5d1c4cb25c
 - name: github.com/miekg/dns
-  version: 350cd086d10de5abf283271115c7a33a94d778cd
+  version: 8ccae88257a8cec016f407e36517a0861e33dda8
 - name: github.com/mitchellh/go-homedir
   version: b8bc1bf767474819792c23f32d8286a45736f1c6
 - name: github.com/nu7hatch/gouuid
@@ -181,7 +190,7 @@ imports:
 - name: github.com/templexxx/xor
   version: 0af8e873c554da75f37f2049cdffda804533d44c
 - name: github.com/tjfoc/gmsm
-  version: 0effa9db1ba81e1a21d70ab611ee2bab9424531a
+  version: 44c14242d82167dbfea0c094bb146f692780af5e
   subpackages:
   - sm4
 - name: github.com/ugorji/go
@@ -199,7 +208,7 @@ imports:
 - name: github.com/xtaci/kcp-go
   version: 42bc1dfefff592fdb3affa793980c4f6ab4213e5
 - name: golang.org/x/crypto
-  version: 75e913eb8a8e3d31a97b216de09de106a7b07681
+  version: df8d4716b3472e4a531c33cedbe537dae921a1a9
   subpackages:
   - blowfish
   - cast5
@@ -233,7 +242,7 @@ imports:
   - trace
   - websocket
 - name: golang.org/x/sys
-  version: 77b0e4315053a57ed2962443614bdb28db152054
+  version: c11f84a56e43e20a78cee75a7c034031ecf57d1f
   repo: https://github.com/golang/sys
   vcs: git
   subpackages:
@@ -264,10 +273,6 @@ imports:
 - name: gopkg.in/bsm/sarama-cluster.v2
   version: cf455bc755fe41ac9bb2861e7a961833d9c2ecc3
 testImports:
-- name: github.com/eclipse/paho.mqtt.golang
-  version: 9ec68b7894ac4cd48fc9126e910e571d50eb5d9c
-  subpackages:
-  - packets
 - name: github.com/pmezard/go-difflib
   version: 792786c7400a136282c1664665ae0a8db921c6c2
   subpackages:
