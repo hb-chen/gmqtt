@@ -102,7 +102,7 @@ func (svc *service) start() (err error) {
 		mu.Unlock()
 
 		log.Infof("poller event:%v", event)
-		if event&netpoll.EventRead == 0 {
+		if svc.isDone() || event&netpoll.EventRead == 0 {
 			return
 		}
 
@@ -234,6 +234,10 @@ func (svc *service) stop() {
 	}
 
 	svc.conn = nil
+}
+
+func (svc *service) isDone() bool {
+	return svc.closed > 0
 }
 
 func (svc *service) process(msg message.Message) error {
