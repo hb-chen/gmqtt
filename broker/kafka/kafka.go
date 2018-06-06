@@ -9,6 +9,7 @@ import (
 	"github.com/pborman/uuid"
 	sc "gopkg.in/bsm/sarama-cluster.v2"
 
+	"github.com/hb-go/micro-mq/pkg/log"
 	"github.com/hb-go/micro-mq/broker"
 	"github.com/hb-go/micro-mq/broker/codec/json"
 )
@@ -133,10 +134,12 @@ func (k *kBroker) Publish(topic string, msg *broker.Message, opts ...broker.Publ
 	if err != nil {
 		return err
 	}
-	_, _, err = k.p.SendMessage(&sarama.ProducerMessage{
+	partition, offset, err := k.p.SendMessage(&sarama.ProducerMessage{
 		Topic: topic,
 		Value: sarama.ByteEncoder(b),
 	})
+
+	log.Debugf("broker kafka: sent message partition:%d, offset:%d", partition, offset)
 	return err
 }
 
@@ -184,6 +187,7 @@ func (k *kBroker) Subscribe(topic string, handler broker.Handler, opts ...broker
 			case err := <-c.Errors():
 				// @TODO 根据错误类型的重试、退出、报警等
 				if err != nil {
+					log.Errorf("broker kafka: handler error:%v", err)
 					continue
 				} else {
 					return
@@ -193,8 +197,12 @@ func (k *kBroker) Subscribe(topic string, handler broker.Handler, opts ...broker
 				if sm == nil {
 					continue
 				}
+
+				log.Debugf("broker kafka: receive message partition:%d, offset:%d", sm.Partition, sm.Offset)
+
 				var m broker.Message
 				if err := k.opts.Codec.Unmarshal(sm.Value, &m); err != nil {
+					log.Errorf("broker kafka: handler unmarshal error:%v", err)
 					continue
 				}
 				if err := handler(&publication{
@@ -204,6 +212,8 @@ func (k *kBroker) Subscribe(topic string, handler broker.Handler, opts ...broker
 					km: sm,
 				}); err == nil && opt.AutoAck {
 					c.MarkOffset(sm, "")
+				} else if (err != nil) {
+					log.Errorf("broker kafka: handler error:%v", err)
 				}
 			}
 		}

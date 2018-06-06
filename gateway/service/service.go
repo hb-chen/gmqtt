@@ -26,8 +26,6 @@ type (
 
 var (
 	poller netpoll.Poller
-	mu     sync.Mutex
-	events []netpoll.Event
 )
 
 var (
@@ -36,7 +34,10 @@ var (
 
 func init() {
 	var err error
-	poller, err = netpoll.New(&netpoll.Config{})
+	poller, err = netpoll.New(&netpoll.Config{
+		OnWaitError: func(err error) {
+			log.Errorf("net poll wait error:%v", err)
+		}})
 	if err != nil {
 		panic(err)
 	}
@@ -62,6 +63,9 @@ type service struct {
 	subs  []interface{}
 	qoss  []byte
 	rmsgs []*message.PublishMessage
+
+	// writeMessage mutex - serializes writes to the outgoing buffer.
+	//wmu sync.Mutex
 
 	// Whether this is service is closed or not.
 	closed int64
@@ -91,69 +95,68 @@ func (svc *service) start() (err error) {
 	}()
 
 	exit := make(chan bool, 1)
-	var (
-		data     = []byte("hello")
-		received = make([]byte, 0, len(data))
-	)
-
 	err = poller.Start(desc, func(event netpoll.Event) {
-		mu.Lock()
-		events = append(events, event)
-		mu.Unlock()
+		var warn, err error
+		defer func() {
+			// recover from panic
+			if r := recover(); r != nil {
+				log.Errorf("(%s) service process recovering from panic: %v", svc.sess.ID(), r)
+			}
+			if warn != nil {
+				log.Warnf("(%s) service process warn:%v", svc.sess.ID(), warn)
+			}
+			if err != nil {
+				log.Errorf("(%s) service process error:%v", svc.sess.ID(), err)
+			}
+		}()
 
-		log.Infof("poller event:%v", event)
 		if svc.isDone() || event&netpoll.EventRead == 0 {
 			return
+		} else if event&netpoll.EventHup == netpoll.EventHup {
+			// @TODO EventHup后对非Disconnect/EOF继续处理可能产生panic
+			warn = fmt.Errorf("event hup")
+			//exit <- true
+			//return
 		}
 
 		bts := make([]byte, 128)
-		//n, err := conn.Read(bts)
 		buf := bufio.NewReader(svc.conn)
 		n, err := buf.Read(bts)
+
 		switch {
 		case err != nil:
-			log.Errorf("poller read error:%v", err)
-
 			if err == io.EOF {
+				warn = err
+				err = nil
 				exit <- true
 			}
-
 			return
+
 		default:
-			log.Debugf("(%s) poller received:%v", svc.sess.ID(), bts)
-			received = append(received, bts[:n]...)
-			//if err := poller.Resume(desc); err != nil {
-			//	log.Errorf("poller.Resume() error: %v", err)
-			//}
+			log.Debugf("(%s) service process received:%v", svc.sess.ID(), bts)
 
 			mtype := message.MessageType(bts[0] >> 4)
-
 			msg, err := mtype.New()
 			if err != nil {
-				log.Errorf("message type new error:%v", err)
 				return
 			}
 
-			n, err = msg.Decode(bts)
+			_, err = msg.Decode(bts[:n])
 			if err != nil {
-				log.Errorf("message decode error:%v", err)
 				return
-			} else {
-
 			}
 
-			log.Infof("receive message:%v", msg)
+			log.Debugf("(%s) service process received msg:%v", svc.sess.ID(), msg)
 
 			err = svc.process(msg)
 			if err != nil {
-				log.Errorf("message process error:%v", err)
 				if err == errDisconnect {
+					warn = err
+					err = nil
 					exit <- true
 				}
 			}
 		}
-
-		received = received[0:0]
 	})
 
 	// Receiver is responsible for reading from the connection and putting data into
@@ -163,7 +166,7 @@ func (svc *service) start() (err error) {
 	//go svc.receiver()
 
 	<-exit
-	log.Infof("service exit")
+	log.Debugf("service exit")
 
 	return nil
 }
@@ -320,11 +323,7 @@ func (svc *service) process(msg message.Message) error {
 		return errDisconnect
 
 	default:
-		return fmt.Errorf("(%d) invalid message type %s.", svc.id, msg.Name())
-	}
-
-	if err != nil {
-		log.Debugf("(%s) Error processing acked message: %v", svc.id, err)
+		err = fmt.Errorf("invalid message type:%s", msg.Name())
 	}
 
 	return err
@@ -567,7 +566,7 @@ func (svc *service) publish(msg *message.PublishMessage, onComplete OnCompleteFu
 
 	_, err := svc.writeMessage(msg)
 	if err != nil {
-		return fmt.Errorf("sending message error:%v", err)
+		return fmt.Errorf("sending message error:%v msg:%v", err, msg)
 	}
 
 	switch msg.QoS() {

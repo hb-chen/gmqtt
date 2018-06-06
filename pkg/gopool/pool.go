@@ -63,11 +63,12 @@ func (p *Pool) schedule(task func(), timeout <-chan time.Time) error {
 }
 
 func (p *Pool) worker(task func()) {
-	defer func() { <-p.sem }()
+	defer func() {
+		<-p.sem
+	}()
 
-	task()
-
-	for task := range p.work {
+	for {
 		task()
+		task = <-p.work
 	}
 }

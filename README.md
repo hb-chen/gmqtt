@@ -51,6 +51,23 @@ protoc -I=. \
   --go_out=. \
   auth/proto/auth.proto
 ```
+#### Kafka
+```bash
+# Start the server
+$ bin/zookeeper-server-start.sh config/zookeeper.properties
+$ bin/kafka-server-start.sh config/server.properties
+
+# List topic
+bin/kafka-topics.sh --list --zookeeper localhost:2181
+
+# Start a consumer
+bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic topic --from-beginning
+```
+#### Kafka Manager
+```bash
+# 启动报错，需修改conf/application.conf
+kafka-manager.zkhosts="localhost:2181"
+```
 
 ## 参考内容
 - [[译]百万级WebSockets和Go语言](http://xiecode.cn/post/cn_06_a_million_websockets_and_go/)

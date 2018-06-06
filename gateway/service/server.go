@@ -146,7 +146,7 @@ func (srv *Server) ListenAndServe(network, address string) error {
 	}
 	srv.mu.Unlock()
 
-	connPool := gopool.NewPool(10240, 5, 1)
+	connPool := gopool.NewPool(2048, 256, 512)
 
 	for {
 		conn, e := ln.Accept()
@@ -190,8 +190,11 @@ func (srv *Server) ListenAndServe(network, address string) error {
 		srv.mu.Unlock()
 
 		// @TODO 连接池超出一定等待队列后拒绝，由于是长连接队列应该是0等待，或设计连接数队列等待超时
-		err = connPool.Schedule(func() {
-			srv.serveConn(conn)
+		err = connPool.ScheduleTimeout(time.Microsecond*time.Duration(100), func() {
+			err := srv.serveConn(conn)
+			if err != nil {
+				log.Errorf("conn serve error:%v", err)
+			}
 		})
 		if err != nil {
 			log.Errorf("conn pool schedule error:%v", err)
@@ -278,7 +281,6 @@ func (srv *Server) serveConn(conn net.Conn) (err error) {
 
 	req, err := getConnectMessage(conn)
 	if err != nil {
-		log.Errorf("connect message error:%v", err)
 		if cerr, ok := err.(message.ConnackCode); ok {
 			log.Debugf("request message: %s\n response message: %s\n error: %v", req, resp, err)
 			resp.SetReturnCode(cerr)

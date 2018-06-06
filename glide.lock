@@ -1,5 +1,5 @@
-hash: e2145e22550c5661fca83701335c6f75d3359e2d77339a5fecd00608ecc98a2d
-updated: 2018-06-04T20:18:48.10846+08:00
+hash: 4a868f1238379fcbe0a0cf3ff1a7e881a081e78169dff15c68f0aff96482c985
+updated: 2018-06-06T11:42:07.113667+08:00
 imports:
 - name: github.com/aead/chacha20
   version: e2538746bfea853aaa589feb8ec46bd46ee78f86
@@ -162,7 +162,7 @@ imports:
   subpackages:
   - zk
 - name: github.com/Shopify/sarama
-  version: f7be6aa2bc7b2e38edf816b08b582782194a1c02
+  version: 35324cf48e33d8260e1c7c18854465a904ade249
 - name: github.com/smallnest/rpcx
   version: d9aeaaedc09994ad9428be1ba181ff7e3e826195
   subpackages:
