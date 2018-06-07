@@ -67,7 +67,14 @@ type Server struct {
 func NewServer() (srv *Server, err error) {
 	srv = &Server{}
 
-	b := kafka.NewBroker()
+	var b broker.Broker
+	// @TODO broker配置
+	mock := true
+	if mock {
+		b = broker.NewBroker()
+	} else {
+		b = kafka.NewBroker()
+	}
 	if err = b.Connect(); err != nil {
 		return nil, err
 	} else {

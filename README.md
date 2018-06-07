@@ -44,6 +44,35 @@ $ go run -tags "etcd" main.go
 - [rpcx](https://github.com/smallnest/rpcx)
 - [Echo](https://github.com/labstack/echo)
 
+## Benchmark
+- MBP开发环境
+- mock broker
+- pub timeout 3000 ms, size 64
+```bash
+$ go test -run=TestClient$
+# 1 client pub, sent 100000 messages, no sub
+# qos 0
+Total sent 100000 messages dropped 0 in 3096.074512 ms, 0.030961 ms/msg, 32298 msgs/sec
+# qos 1
+Total sent 100000 messages dropped 0 in 10411.318733 ms, 0.104113 ms/msg, 9604 msgs/sec
+```
+```bash
+$ go test -run=TestClient$
+# 1000 clients, sent 1000 messages/client, no sub
+# qos 0
+Total Sent 1000000 messages dropped 0 in 14628.666153 ms, 0.014629 ms/msg, 68358 msgs/sec
+# qos 1
+Total Sent 1000000 messages dropped 0 in 38669.812430 ms, 0.038670 ms/msg, 25859 msgs/sec
+
+# 1000 clients, sent 1000 messages/client, 1 client sub
+# qos 1
+Total Sent 1000000 messages dropped 0 in 65403.199238 ms, 0.065403 ms/msg, 15289 msgs/sec
+Total Received 1000000 messages in 65403.199238 ms, 0.065403 ms/msg, 15289 msgs/sec
+# qos 2
+Total Sent 1000000 messages dropped 0 in 68339.624216 ms, 0.068340 ms/msg, 14632 msgs/sec
+Total Received 1000000 messages in 68339.624216 ms, 0.068340 ms/msg, 14632 msgs/sec
+```
+
 ## 备用命令
 #### Protobuf
 ```bash

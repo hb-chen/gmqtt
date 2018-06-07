@@ -24,12 +24,12 @@ import (
 	"time"
 	"math/rand"
 	"sync/atomic"
+	"errors"
 
 	MQTT "github.com/eclipse/paho.mqtt.golang"
 	"github.com/stretchr/testify/require"
 
 	"github.com/hb-go/micro-mq/pkg/log"
-	"errors"
 )
 
 var f MQTT.MessageHandler = func(client MQTT.Client, msg MQTT.Message) {
@@ -38,19 +38,19 @@ var f MQTT.MessageHandler = func(client MQTT.Client, msg MQTT.Message) {
 }
 
 var (
-	messages    int64         = 50
-	publishers  int64         = 1000
-	subscribers int64         = 2
-	size        int           = 20
+	messages    int64         = 100
+	publishers  int64         = 100
+	subscribers int64         = 1 // =0不消费消息
+	size        int           = 64
 	topic       []byte        = []byte("topic/1")
 	qos         byte          = 1
 	nap         int64         = 100
 	host        string        = "127.0.0.1"
 	port        int           = 1883
-	user        string        = "surgemq"
-	pass        string        = "surgemq"
+	user        string        = "name"
+	pass        string        = "pwd"
 	version     int           = 4
-	pubTimeout  time.Duration = 5000
+	pubTimeout  time.Duration = 3000
 
 	subdone, pubdone, rcvdone, sentdone int64
 
@@ -88,77 +88,94 @@ func TestClient(t *testing.T) {
 	token.Wait()
 	require.NoError(t, token.Error())
 
+	totalDropped = 0
+
+	// 消息消费
 	received := int64(0)
-	drop := int64(0)
 	rNow := time.Now()
 	rSince := time.Since(rNow).Nanoseconds()
-	filters := map[string]byte{string(topic): qos}
-	token = c.SubscribeMultiple(filters, func(client MQTT.Client, message MQTT.Message) {
-		if received == 0 {
-			rNow = time.Now()
-		}
-
-		received++
-		rSince = time.Since(rNow).Nanoseconds()
-		fmt.Printf("%d MSG: %s\n", received, message.Payload())
-
-		if received >= messages-drop {
-			close(rDone)
-		}
-	})
-	token.WaitTimeout(time.Millisecond * 100)
-	token.Wait()
-	require.NoError(t, token.Error())
-
-	now := time.Now()
-	since := time.Since(now).Nanoseconds()
-
-	wg.Add(1)
-
-	go func() {
-		for i := int64(0); i < messages; i++ {
-			//wait := time.After(time.Millisecond * 10)
-			//<-wait
-
-			text := fmt.Sprintf("%d", i)
-			token = c.Publish(string(topic), qos, false, []byte(text))
-			tTimeout := token.WaitTimeout(time.Millisecond * pubTimeout)
-			//tWait := token.Wait()
-			require.NoError(t, token.Error())
-
-			if !tTimeout {
-				drop++
-				log.Warnf("publish token wait/timeout")
+	if subscribers > 0 {
+		filters := map[string]byte{string(topic): qos}
+		token = c.SubscribeMultiple(filters, func(client MQTT.Client, message MQTT.Message) {
+			if received == 0 {
+				rNow = time.Now()
 			}
 
-			since = time.Since(now).Nanoseconds()
-		}
+			received++
+			rSince = time.Since(rNow).Nanoseconds()
+			log.Debugf("%d MSG: %s\n", received, message.Payload())
 
-		wg.Done()
-	}()
+			if received >= messages-totalDropped {
+
+				close(rDone)
+			}
+		})
+		token.WaitTimeout(time.Millisecond * 100)
+		token.Wait()
+		require.NoError(t, token.Error())
+	}
+
+	// 消息发布
+	now := time.Now()
+	since := time.Since(now).Nanoseconds()
+	for j := 0; j < 1; j++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+
+			drop := int64(0)
+			payload := make([]byte, size)
+			for i := int64(0); i < messages; i++ {
+				//wait := time.After(time.Millisecond * 10)
+				//<-wait
+
+				msg := fmt.Sprintf("%d", i)
+				copy(payload, []byte(msg))
+				token = c.Publish(string(topic), qos, false, payload)
+				tTimeout := token.WaitTimeout(time.Millisecond * pubTimeout)
+				require.NoError(t, token.Error())
+
+				if !tTimeout {
+					drop++
+					log.Warnf("publish token wait/timeout")
+				}
+			}
+
+			statMu.Lock()
+			since = time.Since(now).Nanoseconds()
+			totalSent += messages
+			totalDropped += drop
+			statMu.Unlock()
+		}()
+	}
 
 	wg.Wait()
 
-	select {
-	case <-rDone:
-	case <-time.After(time.Millisecond * 100 * time.Duration(messages)):
-		log.Errorf("receiver wait time out")
+	if subscribers > 0 {
+		select {
+		case <-rDone:
+		case <-time.After(time.Millisecond * 100 * time.Duration(messages)):
+			log.Errorf("receiver wait time out")
+		}
 	}
 
 	time.Sleep(3 * time.Second)
 
-	token = c.Unsubscribe(string(topic))
-	token.WaitTimeout(time.Millisecond * 100)
-	token.Wait()
-	require.NoError(t, token.Error())
+	if subscribers > 0 {
+		token = c.Unsubscribe(string(topic))
+		if ok := token.WaitTimeout(time.Second * 10); !ok {
+			log.Errorf("unsubscribe time out")
+		}
+		require.NoError(t, token.Error())
+	}
 
 	c.Disconnect(250)
 
-	log.Infof("sent %d messages dropped %d in %d ns, %d ns/msg, %d msgs/sec", messages, drop, since, int(float64(since)/float64(messages)), int(float64(messages)/(float64(since)/float64(time.Second))))
-	log.Infof("received %d messages in %d ns, %d ns/msg, %d msgs/sec", received, rSince, int(float64(rSince)/float64(messages)), int(float64(messages)/(float64(rSince)/float64(time.Second))))
+	log.Infof("Total sent %d messages dropped %d in %f ms, %f ms/msg, %d msgs/sec", totalSent, totalDropped, float64(since)/float64(time.Millisecond), float64(since)/float64(time.Millisecond)/float64(totalSent), int(float64(totalSent)/(float64(since)/float64(time.Second))))
+	log.Infof("Total received %d messages in %d ns, %d ns/msg, %d msgs/sec", received, rSince, int(float64(rSince)/float64(totalSent)), int(float64(totalSent)/(float64(rSince)/float64(time.Second))))
 }
 
-// Usage: go test -run=Clients
+// Usage: go test -run=TestClients$
 func TestClients(t *testing.T) {
 
 	var wg1 sync.WaitGroup
@@ -183,13 +200,15 @@ func TestClients(t *testing.T) {
 	sDone = make(chan struct{})
 	rTimeOut = make(chan struct{})
 
-	for i := int64(1); i < subscribers+1; i++ {
-		time.Sleep(time.Millisecond * 20)
-		wg1.Add(1)
-		go startSubscriber(t, i, &wg1)
-	}
+	if subscribers > 0 {
+		for i := int64(1); i < subscribers+1; i++ {
+			time.Sleep(time.Millisecond * 20)
+			wg1.Add(1)
+			go startSubscriber(t, i, &wg1)
+		}
 
-	<-sReady
+		<-sReady
+	}
 
 	for i := subscribers + 1; i < publishers+subscribers+1; i++ {
 		time.Sleep(time.Millisecond * 20)
@@ -200,8 +219,8 @@ func TestClients(t *testing.T) {
 	wg1.Wait()
 	wg2.Wait()
 
-	log.Infof("Total Sent %d messages dropped %d in %d ns, %d ns/msg, %d msgs/sec", totalSent, totalDropped, sentSince, int(float64(sentSince)/float64(totalSent)), int(float64(totalSent)/(float64(sentSince)/float64(time.Second))))
-	log.Infof("Total Received %d messages in %d ns, %d ns/msg, %d msgs/sec", totalRcvd, sentSince, int(float64(sentSince)/float64(totalRcvd)), int(float64(totalRcvd)/(float64(sentSince)/float64(time.Second))))
+	log.Infof("Total Sent %d messages dropped %d in %f ms, %f ms/msg, %d msgs/sec", totalSent, totalDropped, float64(sentSince)/float64(time.Millisecond), float64(sentSince)/float64(time.Millisecond)/float64(totalSent), int(float64(totalSent)/(float64(sentSince)/float64(time.Second))))
+	log.Infof("Total Received %d messages in %f ms, %f ms/msg, %d msgs/sec", totalRcvd, float64(sentSince)/float64(time.Millisecond), float64(sentSince)/float64(time.Millisecond)/float64(totalRcvd), int(float64(totalRcvd)/(float64(sentSince)/float64(time.Second))))
 }
 
 func startSubscriber(t testing.TB, cid int64, wg *sync.WaitGroup) {
@@ -285,21 +304,14 @@ func startSubscriber(t testing.TB, cid int64, wg *sync.WaitGroup) {
 	if !allDone {
 		select {
 		case <-rDone:
-		case <-time.After(time.Second * time.Duration(nap*publishers)):
+		case <-time.After(time.Millisecond * time.Duration(nap*publishers)):
 			close(rTimeOut)
 			log.Warnf("(cid:%d) Timed out waiting for messages to be received.", cid)
 		}
 	}
 
-	//select {
-	//case <-rDone:
-	//case <-time.After(time.Millisecond * time.Duration(nap*publishers)):
-	//	close(rTimeOut)
-	//	log.Warnf("(cid:%d) Timed out waiting for messages to be received.", cid)
-	//}
-
 	token = c.Unsubscribe(string(topic))
-	if ok := token.WaitTimeout(time.Second * 10); !ok {
+	if ok := token.WaitTimeout(time.Second * 5); !ok {
 		log.Errorf("subscriber unsub time out")
 	}
 	require.NoError(t, token.Error())
@@ -315,7 +327,7 @@ func startSubscriber(t testing.TB, cid int64, wg *sync.WaitGroup) {
 	}
 	statMu.Unlock()
 
-	log.Infof("(cid:%d) Received %d messages in %d ns, %d ns/msg, %d msgs/sec", cid, received, since, int(float64(since)/float64(cnt)), int(float64(received)/(float64(since)/float64(time.Second))))
+	log.Infof("(cid:%d) Received %d messages in %f ms, %f ms/msg, %d msgs/sec", cid, received, float64(since)/float64(time.Millisecond), float64(since)/float64(time.Millisecond)/float64(cnt), int(float64(received)/(float64(since)/float64(time.Second))))
 }
 
 func startPublisher(t testing.TB, cid int64, wg *sync.WaitGroup) {
@@ -350,7 +362,9 @@ func startPublisher(t testing.TB, cid int64, wg *sync.WaitGroup) {
 	cnt := messages
 	sent := 0
 	dropped := 0
+	payload := make([]byte, size)
 	for i := int64(0); i < cnt; i++ {
+		// 随机延时发送
 		if false {
 			r := int64(100)
 			if false {
@@ -360,10 +374,10 @@ func startPublisher(t testing.TB, cid int64, wg *sync.WaitGroup) {
 			<-wait
 		}
 
-		text := fmt.Sprintf("cid:%d, msg:%d", cid, i)
-		token = c.Publish(string(topic), qos, false, []byte(text))
+		msg := fmt.Sprintf("cid:%d, msg:%d", cid, i)
+		copy(payload, []byte(msg))
+		token = c.Publish(string(topic), qos, false, payload)
 		tTimeout := token.WaitTimeout(time.Millisecond * pubTimeout)
-		//tWait := token.Wait()
 		require.NoError(t, token.Error())
 
 		if !tTimeout {
@@ -387,9 +401,11 @@ func startPublisher(t testing.TB, cid int64, wg *sync.WaitGroup) {
 		close(sDone)
 	}
 
-	select {
-	case <-rDone:
-	case <-rTimeOut:
+	if subscribers > 0 {
+		select {
+		case <-rDone:
+		case <-rTimeOut:
+		}
 	}
 
 	time.Sleep(3 * time.Second)
@@ -403,5 +419,5 @@ func startPublisher(t testing.TB, cid int64, wg *sync.WaitGroup) {
 	}
 	statMu.Unlock()
 
-	log.Infof("(cid:%d) Sent %d messages dropped %d in %d ns, %d ns/msg, %d msgs/sec", cid, sent, dropped, since, int(float64(since)/float64(cnt)), int(float64(sent)/(float64(since)/float64(time.Second))))
+	log.Infof("(cid:%d) Sent %d messages dropped %d in %f ms, %f ms/msg, %d msgs/sec", cid, sent, dropped, float64(since)/float64(time.Millisecond), float64(since)/float64(time.Millisecond)/float64(cnt), int(float64(sent)/(float64(since)/float64(time.Second))))
 }
