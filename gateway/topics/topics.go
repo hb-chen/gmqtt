@@ -31,6 +31,7 @@ import (
 
 	"github.com/hb-go/micro-mq/pkg/log"
 	"github.com/hb-go/micro-mq/broker"
+	. "github.com/hb-go/micro-mq/gateway/conf"
 )
 
 const (
@@ -106,7 +107,7 @@ type Manager struct {
 func NewManager(providerName string, b broker.Broker, h broker.Handler) (*Manager, error) {
 	p, ok := providers[providerName]
 	if !ok {
-		return nil, fmt.Errorf("session: unknown provider %q", providerName)
+		return nil, fmt.Errorf("topics: unknown provider %q", providerName)
 	}
 
 	return &Manager{
@@ -126,9 +127,9 @@ func (this *Manager) Subscribe(topic []byte, qos byte, subscriber interface{}) (
 		log.Debugf("broker topic:%v subscribe", brTopic)
 		_, ok := this.subers[brTopic]
 		if !ok {
-			// @TODO kafka通配符(*)无效问题
 			// broker只订阅一级话题，通过header传递MQTT特有属性QoS、Topic
-			suber, err := this.broker.Subscribe(brTopic, this.subHandler)
+			// @TODO Broker队列与Gateway实例ID绑定，即Kafka的Consumer Group
+			suber, err := this.broker.Subscribe(brTopic, this.subHandler, broker.Queue(Conf.Server.Id))
 			if err != nil {
 				log.Errorf("broker topic:%v subscribe error:%v", brTopic, err)
 				return message.QosFailure, err

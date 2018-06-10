@@ -19,14 +19,14 @@ import (
 	"sync"
 )
 
-var (
-	ProviderNameMem = "mem"
+const (
+	ProviderMem = "mem"
 )
 
 var _ SessionsProvider = (*memProvider)(nil)
 
 func init() {
-	Register(ProviderNameMem, NewMemProvider())
+	Register(ProviderMem, NewMemProvider())
 }
 
 type memProvider struct {

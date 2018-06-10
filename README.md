@@ -5,21 +5,24 @@
 
 ## 运行
 #### 服务依赖
-- 服务注册与发现
+> 根据配置选择 conf/conf.toml
+- MQ `conf.broker`
+    - [x] Kafka 
+- 服务注册与发现 `conf.auth`
     - [x] Etcd
     - [ ] Consul
-- MQ
-    - [x] Kafka
     
 #### 启动服务
 ```bash
-# 启动Auth服务，[-h]帮助查看可选参数
-$ cd auth
-$ go run -tags "etcd" main.go
-
 # 启动Gateway，[-h]帮助查看可选参数
 $ cd gateway
 $ go run -tags "etcd" main.go
+
+# RPC Auth服务，[-h]帮助查看可选参数
+$ cd auth
+$ go run -tags "etcd" main.go
+
+
 ```
 
 #### MQTT Web Client
@@ -57,7 +60,7 @@ Total sent 100000 messages dropped 0 in 3096.074512 ms, 0.030961 ms/msg, 32298 m
 Total sent 100000 messages dropped 0 in 10411.318733 ms, 0.104113 ms/msg, 9604 msgs/sec
 ```
 ```bash
-$ go test -run=TestClient$
+$ go test -run=TestClients$
 # 1000 clients, sent 1000 messages/client, no sub
 # qos 0
 Total Sent 1000000 messages dropped 0 in 14628.666153 ms, 0.014629 ms/msg, 68358 msgs/sec

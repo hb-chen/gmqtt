@@ -12,25 +12,25 @@ import (
 	verify "github.com/hb-go/micro-mq/auth/proto/verify"
 )
 
-var (
-	ProviderNameRpc = "rpc"
+const (
+	ProviderRpc = "rpc"
 )
 
 type RpcAuthenticator struct {
 	xClient  client.XClient
-	EtcdAddr *string
+	EtcdAddr []string
 }
 
-func NewRpcRegister(addr string) io.Closer {
-	rpcAuth := &RpcAuthenticator{EtcdAddr: &addr}
+func NewRpcRegister(addr []string) io.Closer {
+	rpcAuth := &RpcAuthenticator{EtcdAddr: addr}
 	rpcAuth.Init()
-	Register(ProviderNameRpc, rpcAuth)
+	Register(ProviderRpc, rpcAuth)
 
 	return rpcAuth
 }
 
 func (a *RpcAuthenticator) Init() {
-	d := client.NewEtcdDiscovery(conv.ProtoEnumsToRpcxBasePath(auth.BASE_PATH_name), auth.SRV_Auth.String(), []string{*a.EtcdAddr}, nil)
+	d := client.NewEtcdDiscovery(conv.ProtoEnumsToRpcxBasePath(auth.BASE_PATH_name), auth.SRV_Auth.String(), a.EtcdAddr, nil)
 	xc := client.NewXClient(auth.SRV_Auth.String(), client.Failover, client.RoundRobin, d, client.DefaultOption)
 	a.xClient = xc
 }

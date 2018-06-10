@@ -5,14 +5,16 @@ import (
 	"net/url"
 
 	"github.com/hb-go/micro-mq/pkg/log"
+	. "github.com/hb-go/micro-mq/gateway/conf"
 	"github.com/hb-go/micro-mq/gateway/auth"
 	"github.com/hb-go/micro-mq/gateway/service"
 )
 
 var (
-	cmdHelp  = flag.Bool("h", false, "帮助")
-	addr     = flag.String("addr", "tcp://127.0.0.1:1883", "server address")
-	etcdAddr = flag.String("etcdAddr", "localhost:2379", "etcd address")
+	cmdHelp      = flag.Bool("h", false, "帮助")
+	confFilePath = flag.String("conf", "conf/conf.toml", "配置文件路径")
+	//addr         = flag.String("addr", "tcp://127.0.0.1:1883", "server address")
+	//etcdAddrs    = flag.String("etcdAddrs", "localhost:2379", "etcd address")
 )
 
 func init() {
@@ -25,24 +27,40 @@ func main() {
 		return
 	}
 
-	u, err := url.Parse(*addr)
+	// 配置初始化
+	if err := InitConfig(*confFilePath); err != nil {
+		log.Panic(err)
+		return
+	}
+
+	u, err := url.Parse(Conf.Server.Addr)
 	if err != nil {
 		log.Panic(err)
 		return
 	}
 
+	// @TODO CMD参数覆盖Conf配置
+
 	log.SetColor(true)
-	log.SetLevel(log.DEBUG)
+	log.SetLevel(Conf.LogLvl())
 
-	closer := auth.NewRpcRegister(*etcdAddr)
-	defer func() {
-		if err := closer.Close(); err != nil {
-			log.Warnf("rpc auth close error:%v", err)
-		}
-	}()
+	if Conf.Auth.Provider == auth.ProviderRpc {
+		addrs := Conf.Auth.Addrs
+		//if len(*etcdAddrs) > 0 {
+		//	addrs = strings.Split(*etcdAddrs, ",")
+		//}
+		closer := auth.NewRpcRegister(addrs)
+		defer func() {
+			if err := closer.Close(); err != nil {
+				log.Warnf("rpc auth close error:%v", err)
+			}
+		}()
+	}
 
-	service.AddWebsocketHandler("/mqtt", *addr)
-	go service.ListenAndServeWebsocket(":8080")
+	if len(Conf.Server.WsAddr) > 0 {
+		service.AddWebsocketHandler("/mqtt", Conf.Server.Addr)
+		go service.ListenAndServeWebsocket(Conf.Server.WsAddr)
+	}
 
 	server, err := service.NewServer()
 	if err != nil {

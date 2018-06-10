@@ -54,7 +54,7 @@ type Manager struct {
 func NewManager(providerName string) (*Manager, error) {
 	p, ok := providers[providerName]
 	if !ok {
-		return nil, fmt.Errorf("session: unknown provider %q", providerName)
+		return nil, fmt.Errorf("auth: unknown provider %q", providerName)
 	}
 
 	return &Manager{p: p}, nil

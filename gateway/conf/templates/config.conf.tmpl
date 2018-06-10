@@ -1,0 +1,50 @@
+# default DEBUG, DEBUG INFO WARN ERROR OFF
+log_level = "{{getv "/log_level"}}"
+
+[app]
+name = "{{getv "/app/name"}}"
+
+[server]
+addr = "{{getv "/server/addr"}}"
+ws_addr = "{{getv "/server/ws_addr"}}"
+
+[auth]
+# MockSuccess、MockFailure、rpc
+provider = "{{getv "/auth/provider"}}"
+addrs = [{{getv "/auth/addrs"}}]
+
+[broker]
+# mock、kafka
+provider = "{{getv "/broker/provider"}}"
+addrs = [{{getv "/auth/addrs"}}]
+
+[sessions]
+# mem、redis
+provider = "{{getv "/sessions/provider"}}"
+
+[database]
+name = "{{getv "/database/name"}}"
+user_name = "{{getv "/database/user_name"}}"
+pwd  = "{{getv "/database/pwd"}}"
+host = "{{getv "/database/host"}}"
+port = "{{getv "/database/port"}}"
+
+[redis]
+server = "{{getv "/redis/server"}}"
+pwd = "{{getv "/redis/pwd"}}"
+
+[memcached]
+server = "{{getv "/memcached/server"}}"
+
+[opentracing]
+disable = {{getv "/opentracing/disable"}}
+
+# jaeger or appdash
+type = "{{getv "/opentracing/type"}}"
+
+# jaeger serviceName
+service_name = "{{getv "/opentracing/service_name"}}"
+
+# jaeger-agent 127.0.0.1:6831
+# appdash http://localhost:8700
+address = "{{getv "/opentracing/address"}}"

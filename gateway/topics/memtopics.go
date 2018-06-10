@@ -22,9 +22,11 @@ import (
 	"github.com/surgemq/message"
 )
 
-var (
-	ProviderNameMem = "mem"
+const (
+	ProviderMem = "mem"
+)
 
+var (
 	// MaxQosAllowed is the maximum QOS supported by this server
 	MaxQosAllowed = message.QosExactlyOnce
 )
@@ -44,7 +46,7 @@ type memTopics struct {
 }
 
 func init() {
-	Register(ProviderNameMem, NewMemProvider())
+	Register(ProviderMem, NewMemProvider())
 }
 
 var _ TopicsProvider = (*memTopics)(nil)

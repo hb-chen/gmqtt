@@ -22,7 +22,7 @@ func AddWebsocketHandler(urlPattern string, uri string) error {
 	log.Debugf("AddWebsocketHandler urlPattern=%s, uri=%s", urlPattern, uri)
 	u, err := url.Parse(uri)
 	if err != nil {
-		log.Errorf("surgemq/main: %v", err)
+		log.Errorf("web socket add handler error: %v", err)
 		return err
 	}
 
@@ -35,7 +35,12 @@ func AddWebsocketHandler(urlPattern string, uri string) error {
 
 /* start a listener that proxies websocket <-> tcp */
 func ListenAndServeWebsocket(addr string) error {
-	return http.ListenAndServe(addr, nil)
+	err := http.ListenAndServe(addr, nil)
+	if err != nil {
+		log.Errorf("web socket listen&serve error:%v", err)
+	}
+
+	return err
 }
 
 /* starts an HTTPS listener */

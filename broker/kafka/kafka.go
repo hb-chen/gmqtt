@@ -14,6 +14,8 @@ import (
 	"github.com/hb-go/micro-mq/broker/codec/json"
 )
 
+const BrokerKafka = "kafka"
+
 type kBroker struct {
 	addrs []string
 
@@ -223,7 +225,7 @@ func (k *kBroker) Subscribe(topic string, handler broker.Handler, opts ...broker
 }
 
 func (k *kBroker) String() string {
-	return "kafka"
+	return BrokerKafka
 }
 
 func NewBroker(opts ...broker.Option) broker.Broker {

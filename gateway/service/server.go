@@ -12,6 +12,7 @@ import (
 
 	"github.com/hb-go/micro-mq/pkg/log"
 	"github.com/hb-go/micro-mq/pkg/gopool"
+	. "github.com/hb-go/micro-mq/gateway/conf"
 	"github.com/hb-go/micro-mq/broker"
 	"github.com/hb-go/micro-mq/broker/kafka"
 	"github.com/hb-go/micro-mq/gateway/sessions"
@@ -68,13 +69,15 @@ func NewServer() (srv *Server, err error) {
 	srv = &Server{}
 
 	var b broker.Broker
-	// @TODO broker配置
-	mock := true
-	if mock {
+	switch Conf.Broker.Provider {
+	case broker.BrokerMock:
 		b = broker.NewBroker()
-	} else {
-		b = kafka.NewBroker()
+	case kafka.BrokerKafka:
+		b = kafka.NewBroker(broker.Addrs(Conf.Broker.Addrs...))
+	default:
+		return nil, errors.New("unsupported broker provider")
 	}
+
 	if err = b.Connect(); err != nil {
 		return nil, err
 	} else {
@@ -88,18 +91,18 @@ func NewServer() (srv *Server, err error) {
 		}
 	}()
 
-	if srv.authMgr, err = auth.NewManager(auth.ProviderNameRpc); err != nil {
+	if srv.authMgr, err = auth.NewManager(Conf.Auth.Provider); err != nil {
 		return nil, err
 	}
 
-	if srv.sessMgr, err = sessions.NewManager(sessions.ProviderNameMem); err != nil {
+	if srv.sessMgr, err = sessions.NewManager(Conf.Sessions.Provider); err != nil {
 		return nil, err
 	}
 
 	h := func(p broker.Publication) error {
 		return srv.subHandler(p)
 	}
-	if srv.topicMgr, err = topics.NewManager(topics.ProviderNameMem, srv.broker, h); err != nil {
+	if srv.topicMgr, err = topics.NewManager(topics.ProviderMem, srv.broker, h); err != nil {
 		return nil, err
 	}
 

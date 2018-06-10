@@ -7,6 +7,8 @@ import (
 	"github.com/pborman/uuid"
 )
 
+const BrokerMock = "mock"
+
 type mockBroker struct {
 	opts Options
 
@@ -137,7 +139,7 @@ func (m *mockBroker) Subscribe(topic string, handler Handler, opts ...SubscribeO
 }
 
 func (m *mockBroker) String() string {
-	return "mock"
+	return BrokerMock
 }
 
 func (m *mockPublication) Topic() string {

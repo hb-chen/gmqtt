@@ -18,17 +18,19 @@ type mockAuthenticator bool
 
 var _ Authenticator = (*mockAuthenticator)(nil)
 
-var (
-	ProviderNameMockSuccess = "MockSuccess"
-	ProviderNameMockFailure = "MockFailure"
+const (
+	ProviderMockSuccess = "MockSuccess"
+	ProviderMockFailure = "MockFailure"
+)
 
+var (
 	mockSuccessAuthenticator mockAuthenticator = true
 	mockFailureAuthenticator mockAuthenticator = false
 )
 
 func init() {
-	Register(ProviderNameMockSuccess, mockSuccessAuthenticator)
-	Register(ProviderNameMockFailure, mockFailureAuthenticator)
+	Register(ProviderMockSuccess, mockSuccessAuthenticator)
+	Register(ProviderMockFailure, mockFailureAuthenticator)
 }
 
 func (this mockAuthenticator) Authenticate(id string, cred interface{}) error {

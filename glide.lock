@@ -1,5 +1,5 @@
-hash: 4a868f1238379fcbe0a0cf3ff1a7e881a081e78169dff15c68f0aff96482c985
-updated: 2018-06-06T11:42:07.113667+08:00
+hash: f041aabbadbe332e020e361f9c756a771df64fe7ddb0575bf1614d14adc70734
+updated: 2018-06-07T20:51:32.56893+08:00
 imports:
 - name: github.com/aead/chacha20
   version: e2538746bfea853aaa589feb8ec46bd46ee78f86
@@ -11,6 +11,8 @@ imports:
   version: 198357931e6129b810c9c77c12e0dd754846170c
   subpackages:
   - syntax
+- name: github.com/BurntSushi/toml
+  version: b26d9c308763d68093482582cea63d69be07a0f0
 - name: github.com/cenk/backoff
   version: f756bc9a37f808627c8c1b26d2d6ea40c468440b
 - name: github.com/cenkalti/backoff
