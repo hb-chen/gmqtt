@@ -11,16 +11,16 @@ ws_addr = ":8080"
 [auth]
 # MockSuccess、MockFailure、rpc
 provider = "MockSuccess"
-addrs = ["localhost:2379"] # rpc服务发现
+addrs = ["127.0.0.1:2379"] # rpc服务发现
 
 [broker]
-# mock、kafka
+# mock、kafka，默认mock
 provider = "mock"
 addrs = []
 
 [sessions]
-# mem、redis
-provider = "mem"
+# mock、redis，默认mock
+provider = "mock"
 
 [database]
 name = "db_name"
@@ -34,7 +34,7 @@ server = "127.0.0.1:6379"
 pwd = "123456"
 
 [memcached]
-server = "localhost:11211"
+server = "127.0.0.1:11211"
 
 [opentracing]
 disable = false

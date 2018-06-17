@@ -1,5 +1,5 @@
-hash: f041aabbadbe332e020e361f9c756a771df64fe7ddb0575bf1614d14adc70734
-updated: 2018-06-07T20:51:32.56893+08:00
+hash: ffc1f0465159a5af9142c93922dfe914a515fcbb2a6fbb9aca6ec5727ebbe098
+updated: 2018-06-13T08:50:51.491669+08:00
 imports:
 - name: github.com/aead/chacha20
   version: e2538746bfea853aaa589feb8ec46bd46ee78f86
@@ -60,6 +60,8 @@ imports:
   version: 600d898af40aa09a7a93ecb9265d87b0504b6f03
 - name: github.com/fatih/color
   version: 5b77d2a35fb0ede96d138fc9a99f5c9b6aef11b4
+- name: github.com/go-redis/redis
+  version: 83fb42932f6145ce52df09860384a4653d2d332a
 - name: github.com/gogo/protobuf
   version: 342cbe0a04158f6dcb03ca0079991a51a4248c02
   subpackages:

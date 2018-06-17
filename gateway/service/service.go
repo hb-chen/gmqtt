@@ -2,7 +2,6 @@ package service
 
 import (
 	"net"
-	"bufio"
 	"sync"
 	"io"
 	"errors"
@@ -119,15 +118,16 @@ func (svc *service) start() (err error) {
 			//return
 		}
 
-		bts := make([]byte, 128)
-		buf := bufio.NewReader(svc.conn)
-		n, err := buf.Read(bts)
+		//bts := make([]byte, 64)
+		//buf := bufio.NewReader(svc.conn)
+		//n, err := buf.Read(bts)
+
+		bts, err := getMessageBuffer(svc.conn)
 
 		switch {
 		case err != nil:
 			if err == io.EOF {
 				warn = err
-				err = nil
 				exit <- true
 			}
 			return
@@ -136,12 +136,13 @@ func (svc *service) start() (err error) {
 			log.Debugf("(%s) service process received:%v", svc.sess.ID(), bts)
 
 			mtype := message.MessageType(bts[0] >> 4)
-			msg, err := mtype.New()
+			var msg message.Message
+			msg, err = mtype.New()
 			if err != nil {
 				return
 			}
 
-			_, err = msg.Decode(bts[:n])
+			_, err = msg.Decode(bts)
 			if err != nil {
 				return
 			}
@@ -152,7 +153,6 @@ func (svc *service) start() (err error) {
 			if err != nil {
 				if err == errDisconnect {
 					warn = err
-					err = nil
 					exit <- true
 				}
 			}
@@ -233,7 +233,7 @@ func (svc *service) stop() {
 	if svc.sess.Cmsg.CleanSession() && svc.sessMgr != nil {
 		svc.sessMgr.Del(svc.sess.ID())
 	} else {
-		svc.sessMgr.Save(svc.sess.ID())
+		svc.sessMgr.Save(svc.sess.ID(),svc.sess)
 	}
 
 	svc.conn = nil
@@ -562,6 +562,8 @@ func (svc *service) onPublish(msg *message.PublishMessage) error {
 }
 
 func (svc *service) publish(msg *message.PublishMessage, onComplete OnCompleteFunc) error {
+	// @TODO goroutine
+
 	log.Debugf("service/publish: Publishing %s", msg)
 
 	_, err := svc.writeMessage(msg)

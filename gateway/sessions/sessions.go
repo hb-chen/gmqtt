@@ -18,7 +18,6 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"errors"
-	"fmt"
 	"io"
 )
 
@@ -58,43 +57,45 @@ func Unregister(name string) {
 }
 
 type Manager struct {
-	p SessionsProvider
+	store Store
 }
 
-func NewManager(providerName string) (*Manager, error) {
-	p, ok := providers[providerName]
-	if !ok {
-		return nil, fmt.Errorf("session: unknown provider %q", providerName)
-	}
-
-	return &Manager{p: p}, nil
+func NewManager(store Store) (*Manager) {
+	return &Manager{store: store}
 }
 
 func (this *Manager) New(id string) (*Session, error) {
 	if id == "" {
 		id = this.sessionId()
 	}
-	return this.p.New(id)
+
+	sess := &Session{id: id}
+	err := this.store.Set(id, sess)
+	if err != nil {
+		return nil, err
+	}
+
+	return sess, nil
 }
 
 func (this *Manager) Get(id string) (*Session, error) {
-	return this.p.Get(id)
+	return this.store.Get(id)
 }
 
-func (this *Manager) Del(id string) {
-	this.p.Del(id)
+func (this *Manager) Del(id string) error {
+	return this.store.Del(id)
 }
 
-func (this *Manager) Save(id string) error {
-	return this.p.Save(id)
+func (this *Manager) Save(id string, sess *Session) error {
+	return this.store.Set(id, sess)
 }
 
-func (this *Manager) Count() int {
-	return this.p.Count()
+func (this *Manager) Count() (int64, error) {
+	return this.store.Count()
 }
 
 func (this *Manager) Close() error {
-	return this.p.Close()
+	return this.store.Close()
 }
 
 func (manager *Manager) sessionId() string {

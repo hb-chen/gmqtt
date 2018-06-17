@@ -38,12 +38,13 @@ var f MQTT.MessageHandler = func(client MQTT.Client, msg MQTT.Message) {
 }
 
 var (
-	messages    int64         = 100
+	messages    int64         = 10
 	publishers  int64         = 100
 	subscribers int64         = 1 // =0不消费消息
 	size        int           = 64
 	topic       []byte        = []byte("topic/1")
 	qos         byte          = 1
+	order       bool          = true
 	nap         int64         = 100
 	host        string        = "127.0.0.1"
 	port        int           = 1883
@@ -80,7 +81,7 @@ func TestClient(t *testing.T) {
 	var wg sync.WaitGroup
 
 	addr := fmt.Sprintf("tcp://%s:%d", host, port)
-	opts := MQTT.NewClientOptions().AddBroker(addr).SetClientID("clientId")
+	opts := MQTT.NewClientOptions().AddBroker(addr).SetClientID("clientId").SetOrderMatters(order)
 	opts.SetDefaultPublishHandler(f)
 
 	c := MQTT.NewClient(opts)
@@ -95,8 +96,7 @@ func TestClient(t *testing.T) {
 	rNow := time.Now()
 	rSince := time.Since(rNow).Nanoseconds()
 	if subscribers > 0 {
-		filters := map[string]byte{string(topic): qos}
-		token = c.SubscribeMultiple(filters, func(client MQTT.Client, message MQTT.Message) {
+		token = c.Subscribe(string(topic), qos, func(client MQTT.Client, message MQTT.Message) {
 			if received == 0 {
 				rNow = time.Now()
 			}
@@ -137,13 +137,13 @@ func TestClient(t *testing.T) {
 
 				if !tTimeout {
 					drop++
-					log.Warnf("publish token wait/timeout")
+					log.Warnf("publish token wait/timeout msg:%v", msg)
 				}
 			}
 
 			statMu.Lock()
 			since = time.Since(now).Nanoseconds()
-			totalSent += messages
+			totalSent += messages - drop
 			totalDropped += drop
 			statMu.Unlock()
 		}()
@@ -154,7 +154,7 @@ func TestClient(t *testing.T) {
 	if subscribers > 0 {
 		select {
 		case <-rDone:
-		case <-time.After(time.Millisecond * 100 * time.Duration(messages)):
+		case <-time.After(time.Millisecond * 1000 * time.Duration(messages)):
 			log.Errorf("receiver wait time out")
 		}
 	}
@@ -172,7 +172,7 @@ func TestClient(t *testing.T) {
 	c.Disconnect(250)
 
 	log.Infof("Total sent %d messages dropped %d in %f ms, %f ms/msg, %d msgs/sec", totalSent, totalDropped, float64(since)/float64(time.Millisecond), float64(since)/float64(time.Millisecond)/float64(totalSent), int(float64(totalSent)/(float64(since)/float64(time.Second))))
-	log.Infof("Total received %d messages in %d ns, %d ns/msg, %d msgs/sec", received, rSince, int(float64(rSince)/float64(totalSent)), int(float64(totalSent)/(float64(rSince)/float64(time.Second))))
+	log.Infof("Total received %d messages in %f ms, %f ms/msg, %d msgs/sec", received, float64(rSince)/float64(time.Millisecond), float64(rSince)/float64(time.Millisecond)/float64(received), int(float64(received)/(float64(rSince)/float64(time.Second))))
 }
 
 // Usage: go test -run=TestClients$
@@ -228,7 +228,7 @@ func startSubscriber(t testing.TB, cid int64, wg *sync.WaitGroup) {
 
 	clientId := fmt.Sprintf("clientId-%d", cid)
 	addr := fmt.Sprintf("tcp://%s:%d", host, port)
-	opts := MQTT.NewClientOptions().AddBroker(addr).SetClientID(clientId)
+	opts := MQTT.NewClientOptions().AddBroker(addr).SetClientID(clientId).SetOrderMatters(order)
 	opts.SetDefaultPublishHandler(f)
 
 	c := MQTT.NewClient(opts)
@@ -335,7 +335,7 @@ func startPublisher(t testing.TB, cid int64, wg *sync.WaitGroup) {
 
 	clientId := fmt.Sprintf("clientId-%d", cid)
 	addr := fmt.Sprintf("tcp://%s:%d", host, port)
-	opts := MQTT.NewClientOptions().AddBroker(addr).SetClientID(clientId).SetMessageChannelDepth(1000)
+	opts := MQTT.NewClientOptions().AddBroker(addr).SetClientID(clientId).SetOrderMatters(order).SetMessageChannelDepth(1000)
 	opts.SetDefaultPublishHandler(f)
 
 	c := MQTT.NewClient(opts)

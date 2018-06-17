@@ -18,6 +18,7 @@ import (
 	"github.com/hb-go/micro-mq/gateway/sessions"
 	"github.com/hb-go/micro-mq/gateway/topics"
 	"github.com/hb-go/micro-mq/gateway/auth"
+	"github.com/hb-go/micro-mq/gateway/sessions/store"
 )
 
 var (
@@ -70,12 +71,12 @@ func NewServer() (srv *Server, err error) {
 
 	var b broker.Broker
 	switch Conf.Broker.Provider {
-	case broker.BrokerMock:
-		b = broker.NewBroker()
 	case kafka.BrokerKafka:
 		b = kafka.NewBroker(broker.Addrs(Conf.Broker.Addrs...))
-	default:
-		return nil, errors.New("unsupported broker provider")
+		break
+	default: // default mock
+		b = broker.NewBroker()
+		break
 	}
 
 	if err = b.Connect(); err != nil {
@@ -87,7 +88,7 @@ func NewServer() (srv *Server, err error) {
 	defer func() {
 		if err != nil {
 			log.Debugf("server new error:%v", err)
-			b.Disconnect()
+			srv.broker.Disconnect()
 		}
 	}()
 
@@ -95,8 +96,21 @@ func NewServer() (srv *Server, err error) {
 		return nil, err
 	}
 
-	if srv.sessMgr, err = sessions.NewManager(Conf.Sessions.Provider); err != nil {
-		return nil, err
+	switch Conf.Sessions.Provider {
+	case "redis":
+		s, err := store.NewRedisStore("127.0.0.1:6379", "123456")
+		if err != nil {
+			return nil, err
+		}
+		srv.sessMgr = sessions.NewManager(s)
+		break
+	default: // default mock
+		s, err := store.NewMockStore()
+		if err != nil {
+			return nil, err
+		}
+		srv.sessMgr = sessions.NewManager(s)
+		break
 	}
 
 	h := func(p broker.Publication) error {
@@ -109,21 +123,21 @@ func NewServer() (srv *Server, err error) {
 	return srv, nil
 }
 
-func (s *Server) getDoneChan() <-chan struct{} {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	return s.getDoneChanLocked()
+func (srv *Server) getDoneChan() <-chan struct{} {
+	srv.mu.Lock()
+	defer srv.mu.Unlock()
+	return srv.getDoneChanLocked()
 }
 
-func (s *Server) getDoneChanLocked() chan struct{} {
-	if s.doneChan == nil {
-		s.doneChan = make(chan struct{})
+func (srv *Server) getDoneChanLocked() chan struct{} {
+	if srv.doneChan == nil {
+		srv.doneChan = make(chan struct{})
 	}
-	return s.doneChan
+	return srv.doneChan
 }
 
-func (s *Server) closeDoneChanLocked() {
-	ch := s.getDoneChanLocked()
+func (srv *Server) closeDoneChanLocked() {
+	ch := srv.getDoneChanLocked()
 	select {
 	case <-ch:
 		// Already closed. Don't close again.
@@ -426,13 +440,14 @@ func (srv *Server) getSession(svc *service, req *message.ConnectMessage, resp *m
 	// If CleanSession is NOT set, check the session store for existing session.
 	// If found, return it.
 	if !req.CleanSession() {
-		if svc.sess, err = srv.sessMgr.Get(cid); err == nil {
+		if sess, err := srv.sessMgr.Get(cid); err == nil {
 			log.Debugf("stored session:%v", cid)
 			resp.SetSessionPresent(true)
 
-			if err := svc.sess.Update(req); err != nil {
+			if err = svc.sess.Update(req); err != nil {
 				return err
 			}
+			svc.sess = sess
 		}
 	}
 

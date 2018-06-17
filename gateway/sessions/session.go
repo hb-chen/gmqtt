@@ -28,48 +28,48 @@ const (
 
 type Session struct {
 	// Ack queue for outgoing PUBLISH QoS 1 messages
-	Pub1ack *Ackqueue
+	Pub1ack *Ackqueue `json:"-"`
 
 	// Ack queue for incoming PUBLISH QoS 2 messages
-	Pub2in *Ackqueue
+	Pub2in *Ackqueue `json:"-"`
 
 	// Ack queue for outgoing PUBLISH QoS 2 messages
-	Pub2out *Ackqueue
+	Pub2out *Ackqueue `json:"-"`
 
 	// Ack queue for outgoing SUBSCRIBE messages
-	Suback *Ackqueue
+	Suback *Ackqueue `json:"-"`
 
 	// Ack queue for outgoing UNSUBSCRIBE messages
-	Unsuback *Ackqueue
+	Unsuback *Ackqueue `json:"-"`
 
 	// Ack queue for outgoing PINGREQ messages
-	Pingack *Ackqueue
+	Pingack *Ackqueue `json:"-"`
 
 	// cmsg is the CONNECT message
-	Cmsg *message.ConnectMessage
+	Cmsg *message.ConnectMessage `json:"-"`
 
 	// Will message to publish if connect is closed unexpectedly
-	Will *message.PublishMessage
+	Will *message.PublishMessage `json:"-"`
 
 	// Retained publish message
-	Retained *message.PublishMessage
+	Retained *message.PublishMessage `json:"-"`
 
 	// cbuf is the CONNECT message buffer, this is for storing all the will stuff
-	cbuf []byte
+	cbuf []byte `json:"-"`
 
 	// rbuf is the retained PUBLISH message buffer
-	rbuf []byte
+	rbuf []byte `json:"-"`
 
 	// topics stores all the topics for this session/client
-	topics map[string]byte
+	topics map[string]byte `json:"topics"`
 
 	// Initialized?
-	initted bool
+	initted bool `json:"-"`
 
 	// Serialize access to this session
-	mu sync.Mutex
+	mu sync.Mutex `json:"-"`
 
-	id string
+	id string `json:"id"`
 }
 
 func (this *Session) Init(msg *message.ConnectMessage) error {
@@ -161,6 +161,8 @@ func (this *Session) AddTopic(topic string, qos byte) error {
 
 	this.topics[topic] = qos
 
+	// @TODO Update Session Store
+
 	return nil
 }
 
@@ -173,6 +175,8 @@ func (this *Session) RemoveTopic(topic string) error {
 	}
 
 	delete(this.topics, topic)
+
+	// @TODO Update Session Store
 
 	return nil
 }

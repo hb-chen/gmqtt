@@ -3,6 +3,13 @@
 
 ![micro-mq](/doc/img/architecture.jpg "micro-mq")
 
+- Gateway节点`Node`通过订阅MQ消息的方式，完成消息在节点间的转发
+- 根据业务场景的需求，需要考虑Node节点消息消费与生产速度的匹配
+    - Client间的pub/sub关系比较多，如`n`个node, 发送`m`条消息/topic/node，节点消费的需求是`n`*`m`条/topic
+    - Client端多为pub操作，而系统下发消息较少的情况，节点消费需求则比较低
+
+### Features
+
 ## 运行
 #### 服务依赖
 > 根据配置选择 conf/conf.toml

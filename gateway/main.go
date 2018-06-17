@@ -14,7 +14,7 @@ var (
 	cmdHelp      = flag.Bool("h", false, "帮助")
 	confFilePath = flag.String("conf", "conf/conf.toml", "配置文件路径")
 	//addr         = flag.String("addr", "tcp://127.0.0.1:1883", "server address")
-	//etcdAddrs    = flag.String("etcdAddrs", "localhost:2379", "etcd address")
+	//etcdAddrs    = flag.String("etcdAddrs", "127.0.0.1:2379", "etcd address")
 )
 
 func init() {

@@ -25,7 +25,7 @@ import (
 	"github.com/hb-go/micro-mq/pkg/log"
 )
 
-func getConnectMessage(conn io.Closer) (*message.ConnectMessage, error) {
+func getConnectMessage(conn io.Reader) (*message.ConnectMessage, error) {
 	buf, err := getMessageBuffer(conn)
 	if err != nil {
 		log.Infof("Receive error: %v", err)
@@ -39,7 +39,7 @@ func getConnectMessage(conn io.Closer) (*message.ConnectMessage, error) {
 	return msg, err
 }
 
-func getConnackMessage(conn io.Closer) (*message.ConnackMessage, error) {
+func getConnackMessage(conn io.Reader) (*message.ConnackMessage, error) {
 	buf, err := getMessageBuffer(conn)
 	if err != nil {
 		log.Infof("Receive error: %v", err)
@@ -53,7 +53,7 @@ func getConnackMessage(conn io.Closer) (*message.ConnackMessage, error) {
 	return msg, err
 }
 
-func writeMessage(conn io.Closer, msg message.Message) error {
+func writeMessage(conn io.Writer, msg message.Message) error {
 	buf := make([]byte, msg.Len())
 	_, err := msg.Encode(buf)
 	if err != nil {
@@ -65,15 +65,14 @@ func writeMessage(conn io.Closer, msg message.Message) error {
 	return writeMessageBuffer(conn, buf)
 }
 
-func getMessageBuffer(c io.Closer) ([]byte, error) {
+func getMessageBuffer(c io.Reader) ([]byte, error) {
 	if c == nil {
 		return nil, ErrInvalidConnectionType
 	}
-
-	conn, ok := c.(net.Conn)
-	if !ok {
-		return nil, ErrInvalidConnectionType
-	}
+	//conn, ok := c.(net.Conn)
+	//if !ok {
+	//	return nil, ErrInvalidConnectionType
+	//}
 
 	var (
 		// the message buffer
@@ -93,7 +92,7 @@ func getMessageBuffer(c io.Closer) ([]byte, error) {
 			return nil, fmt.Errorf("connect/getMessage: 4th byte of remaining length has continuation bit set")
 		}
 
-		n, err := conn.Read(b[0:])
+		n, err := c.Read(b[0:])
 		if err != nil {
 			//log.Debugf("Read error: %v", err)
 			return nil, err
@@ -119,7 +118,7 @@ func getMessageBuffer(c io.Closer) ([]byte, error) {
 	buf = append(buf, make([]byte, remlen)...)
 
 	for l < len(buf) {
-		n, err := conn.Read(buf[l:])
+		n, err := c.Read(buf[l:])
 		if err != nil {
 			return nil, err
 		}
@@ -129,17 +128,17 @@ func getMessageBuffer(c io.Closer) ([]byte, error) {
 	return buf, nil
 }
 
-func writeMessageBuffer(c io.Closer, b []byte) error {
+func writeMessageBuffer(c io.Writer, b []byte) error {
 	if c == nil {
 		return ErrInvalidConnectionType
 	}
 
-	conn, ok := c.(net.Conn)
-	if !ok {
-		return ErrInvalidConnectionType
-	}
+	//conn, ok := c.(net.Conn)
+	//if !ok {
+	//	return ErrInvalidConnectionType
+	//}
 
-	_, err := conn.Write(b)
+	_, err := c.Write(b)
 	return err
 }
 
