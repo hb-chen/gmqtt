@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package api_client_unregister;
+
+message UnregisterReq {
+    string clientId = 1;
+}
+
+message UnregisterResp {
+    string clientId = 1;
+}

@@ -96,6 +96,16 @@ func (k *kBroker) Connect() error {
 
 	k.c = c
 
+	// Client创建后出现err，做Close()操作
+	defer func() {
+		if err != nil {
+			if k.p != nil {
+				k.p.Close()
+			}
+			k.c.Close()
+		}
+	}()
+
 	p, err := sarama.NewSyncProducerFromClient(c)
 	if err != nil {
 		return err
@@ -171,6 +181,8 @@ func (k *kBroker) Subscribe(topic string, handler broker.Handler, opts ...broker
 	for _, o := range opts {
 		o(&opt)
 	}
+
+	// @TODO 多协程Consumer
 
 	// we need to create a new client per consumer
 	cs, err := k.getSaramaClusterClient(topic)

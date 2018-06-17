@@ -1,0 +1,7 @@
+syntax = "proto3";
+
+package proto;
+
+enum BASE_PATH {
+    api = 0;
+}

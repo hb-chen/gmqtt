@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package api_client_register;
+
+
+message RegisterReq {
+    string clientId = 1;
+}
+
+message RegisterResp {
+    string clientId = 1;
+    string name = 2;
+    string pwd = 3;
+}

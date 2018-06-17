@@ -44,7 +44,9 @@ type config struct {
 }
 
 type app struct {
-	Name string `toml:"name"`
+	Name      string `toml:"name"`
+	AccessKey string `toml:"access_key"`
+	SecretKey string `toml:"secret_key"`
 }
 
 type server struct {
@@ -64,7 +66,7 @@ type broker struct {
 }
 
 type sessions struct {
-	Provider string `toml:"provider"` // mem、redis
+	Provider string `toml:"provider"` // mock、redis
 }
 
 type database struct {

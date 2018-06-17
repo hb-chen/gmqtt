@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package api_access;
+
+enum SRV {
+    access = 0;
+}
+
+enum METHOD {
+    Empty = 0;
+}

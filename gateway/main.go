@@ -45,11 +45,7 @@ func main() {
 	log.SetLevel(Conf.LogLvl())
 
 	if Conf.Auth.Provider == auth.ProviderRpc {
-		addrs := Conf.Auth.Addrs
-		//if len(*etcdAddrs) > 0 {
-		//	addrs = strings.Split(*etcdAddrs, ",")
-		//}
-		closer := auth.NewRpcRegister(addrs)
+		closer := auth.NewRpcRegister(Conf.App.AccessKey, Conf.App.SecretKey, Conf.Auth.Addrs)
 		defer func() {
 			if err := closer.Close(); err != nil {
 				log.Warnf("rpc auth close error:%v", err)

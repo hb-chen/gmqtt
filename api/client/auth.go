@@ -1,13 +1,14 @@
-package handler
+package client
 
 import (
 	"context"
 
-	proto "github.com/hb-go/micro-mq/auth/proto/verify"
 	"github.com/hb-go/micro-mq/pkg/log"
+
+	pbAuth "github.com/hb-go/micro-mq/api/client/proto/auth"
 )
 
-func (a *Auth) Verify(ctx context.Context, req *proto.VerifyReq, resp *proto.VerifyResp) error {
+func (*Client) Auth(ctx context.Context, req *pbAuth.AuthReq, resp *pbAuth.AuthResp) error {
 	log.Debugf("rpc: auth verify")
 	resp.Verified = false
 	if req.Name == req.Pwd {

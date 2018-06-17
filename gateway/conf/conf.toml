@@ -3,6 +3,8 @@ log_level = "DEBUG"
 
 [app]
 name = "Micro MQ"
+access_key = "ak"
+secret_key = "sk"
 
 [server]
 addr = "tcp://127.0.0.1:1883"
@@ -10,7 +12,7 @@ ws_addr = ":8080"
 
 [auth]
 # MockSuccess、MockFailure、rpc
-provider = "MockSuccess"
+provider = "rpc"
 addrs = ["127.0.0.1:2379"] # rpc服务发现
 
 [broker]
@@ -20,7 +22,7 @@ addrs = []
 
 [sessions]
 # mock、redis，默认mock
-provider = "mock"
+provider = "redis"
 
 [database]
 name = "db_name"

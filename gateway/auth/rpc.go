@@ -5,11 +5,14 @@ import (
 	"io"
 
 	"github.com/smallnest/rpcx/client"
+	"github.com/smallnest/rpcx/share"
 
+	"github.com/hb-go/micro-mq/api/auth"
 	"github.com/hb-go/micro-mq/pkg/util/conv"
 	"github.com/hb-go/micro-mq/pkg/log"
-	auth "github.com/hb-go/micro-mq/auth/proto"
-	verify "github.com/hb-go/micro-mq/auth/proto/verify"
+	pbApi "github.com/hb-go/micro-mq/api/proto"
+	pbClient "github.com/hb-go/micro-mq/api/client/proto"
+	pbAuth "github.com/hb-go/micro-mq/api/client/proto/auth"
 )
 
 const (
@@ -17,12 +20,18 @@ const (
 )
 
 type RpcAuthenticator struct {
-	xClient  client.XClient
-	EtcdAddr []string
+	AccessKey string
+	SecretKey string
+	xClient   client.XClient
+	etcdAddr  []string
 }
 
-func NewRpcRegister(addr []string) io.Closer {
-	rpcAuth := &RpcAuthenticator{EtcdAddr: addr}
+func NewRpcRegister(ak, sk string, addr []string) io.Closer {
+	rpcAuth := &RpcAuthenticator{
+		AccessKey: ak,
+		SecretKey: sk,
+		etcdAddr:  addr,
+	}
 	rpcAuth.Init()
 	Register(ProviderRpc, rpcAuth)
 
@@ -30,23 +39,23 @@ func NewRpcRegister(addr []string) io.Closer {
 }
 
 func (a *RpcAuthenticator) Init() {
-	d := client.NewEtcdDiscovery(conv.ProtoEnumsToRpcxBasePath(auth.BASE_PATH_name), auth.SRV_Auth.String(), a.EtcdAddr, nil)
-	xc := client.NewXClient(auth.SRV_Auth.String(), client.Failover, client.RoundRobin, d, client.DefaultOption)
+	d := client.NewEtcdDiscovery(conv.ProtoEnumsToRpcxBasePath(pbApi.BASE_PATH_name), pbClient.SRV_client.String(), a.etcdAddr, nil)
+	xc := client.NewXClient(pbClient.SRV_client.String(), client.Failover, client.RoundRobin, d, client.DefaultOption)
+	xc.Auth(auth.Token(a.AccessKey, a.SecretKey, pbClient.SRV_client.String()))
 	a.xClient = xc
 }
 
 func (a *RpcAuthenticator) Authenticate(id string, cred interface{}) error {
-
 	if pwd, ok := cred.(string); !ok {
 		return ErrAuthCredType
 	} else {
-		req := &verify.VerifyReq{
+		req := &pbAuth.AuthReq{
 			Name: id,
 			Pwd:  pwd,
 		}
-		resp := &verify.VerifyResp{}
-
-		if err := a.xClient.Call(context.Background(), auth.METHOD_Verify.String(), req, resp); err != nil {
+		resp := &pbAuth.AuthResp{}
+		ctx := context.WithValue(context.Background(), share.ReqMetaDataKey, make(map[string]string))
+		if err := a.xClient.Call(ctx, pbClient.METHOD_Auth.String(), req, resp); err != nil {
 			log.Panic(err)
 		}
 
