@@ -4,6 +4,7 @@ import (
 	"flag"
 	"time"
 
+	//"github.com/casbin/redis-adapter"
 	metrics "github.com/rcrowley/go-metrics"
 	"github.com/smallnest/rpcx/server"
 	"github.com/smallnest/rpcx/serverplugin"
@@ -41,7 +42,13 @@ func main() {
 	access.Register(s)
 	client.Register(s)
 
-	s.AuthFunc = auth.Verify
+	// Redis
+	//ra := redisadapter.NewAdapter("tcp", "127.0.0.1:6379")
+	a := auth.NewAuth(nil)
+	if err := a.Init(); err != nil {
+		log.Fatalf("api client serve start error:", err)
+	}
+	s.AuthFunc = a.Verify
 
 	err := s.Serve("tcp", *addr)
 	if err != nil {

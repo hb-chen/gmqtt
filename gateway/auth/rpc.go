@@ -32,13 +32,13 @@ func NewRpcRegister(ak, sk string, addr []string) io.Closer {
 		SecretKey: sk,
 		etcdAddr:  addr,
 	}
-	rpcAuth.Init()
+	rpcAuth.init()
 	Register(ProviderRpc, rpcAuth)
 
 	return rpcAuth
 }
 
-func (a *RpcAuthenticator) Init() {
+func (a *RpcAuthenticator) init() {
 	d := client.NewEtcdDiscovery(conv.ProtoEnumsToRpcxBasePath(pbApi.BASE_PATH_name), pbClient.SRV_client.String(), a.etcdAddr, nil)
 	xc := client.NewXClient(pbClient.SRV_client.String(), client.Failover, client.RoundRobin, d, client.DefaultOption)
 	xc.Auth(auth.Token(a.AccessKey, a.SecretKey, pbClient.SRV_client.String()))

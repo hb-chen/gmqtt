@@ -1,5 +1,5 @@
-hash: ffc1f0465159a5af9142c93922dfe914a515fcbb2a6fbb9aca6ec5727ebbe098
-updated: 2018-06-13T08:50:51.491669+08:00
+hash: d1e1d17f48e905cc2d01e6c3750a7494ac7220c5f0d9c6389973cb6822d526d2
+updated: 2018-06-21T17:10:56.100836+08:00
 imports:
 - name: github.com/aead/chacha20
   version: e2538746bfea853aaa589feb8ec46bd46ee78f86
@@ -13,6 +13,19 @@ imports:
   - syntax
 - name: github.com/BurntSushi/toml
   version: b26d9c308763d68093482582cea63d69be07a0f0
+- name: github.com/casbin/casbin
+  version: d71629e497929858300c38cd442098c178121c30
+  subpackages:
+  - config
+  - effect
+  - model
+  - persist
+  - persist/file-adapter
+  - rbac
+  - rbac/default-role-manager
+  - util
+- name: github.com/casbin/redis-adapter
+  version: 92ca8afd7d0650cda49c5d86d6333a3a96c30c48
 - name: github.com/cenk/backoff
   version: f756bc9a37f808627c8c1b26d2d6ea40c468440b
 - name: github.com/cenkalti/backoff
@@ -22,7 +35,7 @@ imports:
   subpackages:
   - generic
 - name: github.com/coreos/etcd
-  version: 438e6750ee4dd3861c83514e405adf2f3e437e4c
+  version: 67b1ff6724637f0a00f693471ddb17b5adde38cf
   subpackages:
   - client
   - pkg/pathutil
@@ -62,6 +75,14 @@ imports:
   version: 5b77d2a35fb0ede96d138fc9a99f5c9b6aef11b4
 - name: github.com/go-redis/redis
   version: 83fb42932f6145ce52df09860384a4653d2d332a
+  subpackages:
+  - internal
+  - internal/consistenthash
+  - internal/hashtag
+  - internal/pool
+  - internal/proto
+  - internal/singleflight
+  - internal/util
 - name: github.com/gogo/protobuf
   version: 342cbe0a04158f6dcb03ca0079991a51a4248c02
   subpackages:
@@ -74,9 +95,6 @@ imports:
   version: 553a641470496b2327abcac10b36396bd98e45c9
 - name: github.com/gomodule/redigo
   version: 9c11da706d9b7902c6da69c592f75637793fe121
-  subpackages:
-  - internal
-  - redis
 - name: github.com/grandcat/zeroconf
   version: df75bb3ccae13e625e5b60e68d9c9590056dded1
 - name: github.com/hashicorp/consul
@@ -113,6 +131,8 @@ imports:
   version: e7e905edc00ea8827e58662220139109efea09db
 - name: github.com/klauspost/reedsolomon
   version: 7d9453e171e998ffa322b015f10db4e4519adadf
+- name: github.com/Knetic/govaluate
+  version: 9aa49832a739dcd78a5542ff189fb82c3e423116
 - name: github.com/lucas-clemente/aes12
   version: cd47fb39b79f867c6e4e5cd39cf7abd799f71670
 - name: github.com/lucas-clemente/quic-go
@@ -140,13 +160,13 @@ imports:
 - name: github.com/mattn/go-isatty
   version: 6ca4dbf54d38eea1a992b3c722a76a5d1c4cb25c
 - name: github.com/miekg/dns
-  version: 8ccae88257a8cec016f407e36517a0861e33dda8
+  version: eac804ceef194db2da6ee80c728d7658c8c805ff
 - name: github.com/mitchellh/go-homedir
   version: b8bc1bf767474819792c23f32d8286a45736f1c6
 - name: github.com/nu7hatch/gouuid
   version: 179d4d0c4d8d407a32af483c2354df1d2c91e6c3
 - name: github.com/pborman/uuid
-  version: e790cca94e6cc75c7064b1332e63811d4aae1a53
+  version: c65b2f87fee37d1c7854c9164a450713c28d50cd
 - name: github.com/pierrec/lz4
   version: ed8d4cc3b461464e69798080a0092bd028910298
 - name: github.com/pierrec/xxHash
@@ -183,8 +203,6 @@ imports:
   version: f7603f4e1c90a14f48a7170db2d625c5ce04db6b
 - name: github.com/streadway/amqp
   version: 8e4aba63da9fc5571e01c6a45dc809a58cbc5a68
-- name: github.com/surge/glog
-  version: 2578deb2b95c665e6b1ebabf304ce2085c9e1985
 - name: github.com/surgemq/message
   version: 2b7ca1ac6121420133f8df6b94a976d5ca35339a
 - name: github.com/tatsushid/go-fastping
@@ -204,7 +222,7 @@ imports:
 - name: github.com/valyala/fastrand
   version: 19dd0f0bf014a807b05fd196f4da235af618fc94
 - name: github.com/vmihailenco/msgpack
-  version: 6ab02c0ddf38d837488a746aa8709f6ecffc2fde
+  version: b5e691b1eb52a28c05e67ab9df303626c095c23b
   subpackages:
   - codes
 - name: github.com/vrischmann/go-metrics-influxdb
@@ -212,7 +230,7 @@ imports:
 - name: github.com/xtaci/kcp-go
   version: 42bc1dfefff592fdb3affa793980c4f6ab4213e5
 - name: golang.org/x/crypto
-  version: df8d4716b3472e4a531c33cedbe537dae921a1a9
+  version: 2d027ae1dddd4694d54f7a8b6cbe78dca8720226
   subpackages:
   - blowfish
   - cast5
@@ -227,7 +245,7 @@ imports:
   - twofish
   - xtea
 - name: golang.org/x/net
-  version: 2491c5de3490fced2f6cff376127c667efeed857
+  version: f73e4c9ed3b7ebdd5f699a16a880c2b1994e50dd
   subpackages:
   - bpf
   - context
@@ -253,7 +271,7 @@ imports:
   - cpu
   - unix
 - name: golang.org/x/text
-  version: 5c1cf69b5978e5a34c5f9ba09a83e56acc4b7877
+  version: 7922cc490dd5a7dbaa7fd5d6196b49db59ac042f
   repo: https://github.com/golang/text
   vcs: git
   subpackages:

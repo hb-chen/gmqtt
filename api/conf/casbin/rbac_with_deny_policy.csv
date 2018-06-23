@@ -1,0 +1,7 @@
+p, ak, client, Auth, allow
+p, ak, client, Register, allow
+p, ak, client, Unregister, deny
+p, client_register, client, Register, allow
+p, client_register, client, Unregister, allow
+
+g, ak, client_register
