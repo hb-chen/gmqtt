@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package topics;
+
+message TopicsReq {
+    int64 page = 1;
+    int64 size = 2;
+}
+
+message TopicsResp {
+    repeated Topic topics = 1;
+}
+
+message Topic {
+    string Topic = 1;
+    int32 Qos = 2;
+}

@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+import "github.com/hb-go/micro-mq/api/cluster/proto/topics/topics.proto";
+
+package sessions;
+
+message SessionsReq {
+    int64 page = 1;
+    int64 size = 2;
+}
+
+message SessionsResp {
+    repeated Session sessions = 1;
+}
+
+message Session {
+    string id = 1;
+    repeated topics.Topic topics = 2;
+}

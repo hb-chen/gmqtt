@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+import "github.com/hb-go/micro-mq/api/cluster/proto/topics/topics.proto";
+
+package clients;
+
+message ClientsReq {
+    int64 page = 1;
+    int64 size = 2;
+}
+
+message ClientsResp {
+    repeated Client clients = 1;
+}
+
+message Client {
+    string id = 1;
+    repeated topics.Topic topics = 2;
+}

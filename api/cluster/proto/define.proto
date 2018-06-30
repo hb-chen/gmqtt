@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package cluster;
+
+enum SRV {
+    cluster = 0;
+}
+
+enum METHOD {
+    Clients = 0;
+    Sessions = 1;
+    Subscriptions = 2;
+    Topics = 3;
+}
+
