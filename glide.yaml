@@ -21,3 +21,8 @@ import:
 - package: github.com/casbin/casbin
   version: ^1.5.0
 - package: github.com/casbin/redis-adapter
+- package: github.com/casbin/etcd-watcher
+- package: github.com/garyburd/redigo
+  version: ^1.6.0
+  subpackages:
+  - redis

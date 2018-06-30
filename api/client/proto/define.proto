@@ -1,12 +1,8 @@
 syntax = "proto3";
 
-package api_client;
+package client;
 
 enum SRV {
-    client = 0;
-}
-
-enum METHOD {
-    Auth = 0;
-    Register = 1;
+    client_auth = 0;
+    client_register = 1;
 }

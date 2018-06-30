@@ -12,7 +12,7 @@ import (
 	"github.com/hb-go/micro-mq/pkg/log"
 	pbApi "github.com/hb-go/micro-mq/api/proto"
 	pbClient "github.com/hb-go/micro-mq/api/client/proto"
-	pbAuth "github.com/hb-go/micro-mq/api/client/proto/auth"
+	pbAuth "github.com/hb-go/micro-mq/api/client/auth/proto"
 )
 
 const (
@@ -20,17 +20,17 @@ const (
 )
 
 type RpcAuthenticator struct {
-	AccessKey string
-	SecretKey string
-	xClient   client.XClient
-	etcdAddr  []string
+	AccessKeyId     string
+	AccessKeySecret string
+	xClient         client.XClient
+	etcdAddr        []string
 }
 
 func NewRpcRegister(ak, sk string, addr []string) io.Closer {
 	rpcAuth := &RpcAuthenticator{
-		AccessKey: ak,
-		SecretKey: sk,
-		etcdAddr:  addr,
+		AccessKeyId:     ak,
+		AccessKeySecret: sk,
+		etcdAddr:        addr,
 	}
 	rpcAuth.init()
 	Register(ProviderRpc, rpcAuth)
@@ -39,9 +39,9 @@ func NewRpcRegister(ak, sk string, addr []string) io.Closer {
 }
 
 func (a *RpcAuthenticator) init() {
-	d := client.NewEtcdDiscovery(conv.ProtoEnumsToRpcxBasePath(pbApi.BASE_PATH_name), pbClient.SRV_client.String(), a.etcdAddr, nil)
-	xc := client.NewXClient(pbClient.SRV_client.String(), client.Failover, client.RoundRobin, d, client.DefaultOption)
-	xc.Auth(auth.Token(a.AccessKey, a.SecretKey, pbClient.SRV_client.String()))
+	d := client.NewEtcdDiscovery(conv.ProtoEnumsToRpcxBasePath(pbApi.BASE_PATH_name), pbClient.SRV_client_auth.String(), a.etcdAddr, nil)
+	xc := client.NewXClient(pbClient.SRV_client_auth.String(), client.Failover, client.RoundRobin, d, client.DefaultOption)
+	xc.Auth(auth.Token(a.AccessKeyId, a.AccessKeySecret, pbClient.SRV_client_auth.String()))
 	a.xClient = xc
 }
 
@@ -55,7 +55,7 @@ func (a *RpcAuthenticator) Authenticate(id string, cred interface{}) error {
 		}
 		resp := &pbAuth.AuthResp{}
 		ctx := context.WithValue(context.Background(), share.ReqMetaDataKey, make(map[string]string))
-		if err := a.xClient.Call(ctx, pbClient.METHOD_Auth.String(), req, resp); err != nil {
+		if err := a.xClient.Call(ctx, pbAuth.METHOD_Auth.String(), req, resp); err != nil {
 			log.Panic(err)
 		}
 

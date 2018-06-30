@@ -3,12 +3,11 @@ package client
 import (
 	"github.com/smallnest/rpcx/server"
 
-	pbClient "github.com/hb-go/micro-mq/api/client/proto"
+	"github.com/hb-go/micro-mq/api/client/register"
+	"github.com/hb-go/micro-mq/api/client/auth"
 )
 
-type Client struct {
-}
-
 func Register(s *server.Server) {
-	s.RegisterName(pbClient.SRV_client.String(), new(Client), "")
+	auth.Register(s)
+	register.Register(s)
 }

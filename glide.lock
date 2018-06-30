@@ -1,5 +1,5 @@
-hash: d1e1d17f48e905cc2d01e6c3750a7494ac7220c5f0d9c6389973cb6822d526d2
-updated: 2018-06-21T17:10:56.100836+08:00
+hash: 981fb85e51be2a6e51d266c9d97c3abd6522de77c1d65e16fc21ed7390c51422
+updated: 2018-06-30T21:23:40.916733+08:00
 imports:
 - name: github.com/aead/chacha20
   version: e2538746bfea853aaa589feb8ec46bd46ee78f86
@@ -24,6 +24,8 @@ imports:
   - rbac
   - rbac/default-role-manager
   - util
+- name: github.com/casbin/etcd-watcher
+  version: 766ea49dd00c6e500dac71877daac422569b3ca6
 - name: github.com/casbin/redis-adapter
   version: 92ca8afd7d0650cda49c5d86d6333a3a96c30c48
 - name: github.com/cenk/backoff
@@ -73,6 +75,11 @@ imports:
   version: 600d898af40aa09a7a93ecb9265d87b0504b6f03
 - name: github.com/fatih/color
   version: 5b77d2a35fb0ede96d138fc9a99f5c9b6aef11b4
+- name: github.com/garyburd/redigo
+  version: a69d19351219b6dd56f274f96d85a7014a2ec34e
+  subpackages:
+  - internal
+  - redis
 - name: github.com/go-redis/redis
   version: 83fb42932f6145ce52df09860384a4653d2d332a
   subpackages:

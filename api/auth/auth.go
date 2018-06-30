@@ -12,75 +12,88 @@ import (
 	"github.com/smallnest/rpcx/protocol"
 
 	"github.com/hb-go/micro-mq/pkg/util/crypt"
+	"github.com/hb-go/micro-mq/pkg/log"
 )
 
 type Auth struct {
 	cse *casbin.SyncedEnforcer
 }
 
-func NewAuth(adapter persist.Adapter) Auth {
-	var e *casbin.SyncedEnforcer
-	if adapter != nil {
-		e = casbin.NewSyncedEnforcer("conf/casbin/rbac_with_deny_model.conf", adapter, false)
-	} else {
-		e = casbin.NewSyncedEnforcer("conf/casbin/rbac_with_deny_model.conf", "conf/casbin/rbac_with_deny_policy.csv", false)
+func Token(ak, sk, path string) string {
+	return "1.0:" + ak + ":" + crypt.MD5([]byte(path+sk))
+}
+
+func NewAuth(adapter persist.Adapter, w persist.Watcher) *Auth {
+	e := casbin.NewSyncedEnforcer("conf/casbin/rbac_with_deny_model.conf", adapter, false)
+	a := &Auth{
+		cse: e,
 	}
 
-	a := Auth{
-		cse: e,
+	if w != nil {
+		e.SetWatcher(w)
+		w.SetUpdateCallback(a.casbinUpdateCallback)
 	}
 
 	return a
 }
 
-func (this Auth) Init() error {
+func (this *Auth) Init() error {
 	err := this.cse.LoadPolicy()
 	if err != nil {
 		return err
 	}
 
-	filter := fileadapter.Filter{
-		P: []string{"a", "b"},
-		G: []string{"a", "b"},
+	// @TODO
+	if false {
+		filter := fileadapter.Filter{
+			P: []string{"a", "b"},
+			G: []string{"a", "b"},
+		}
+		this.cse.LoadFilteredPolicy(filter)
 	}
-	this.cse.LoadFilteredPolicy(filter)
 
 	this.cse.StartAutoLoadPolicy(time.Second * 60)
 
 	return nil
 }
 
-func Token(ak, sk, path string) string {
-	return "1.0:" + ak + ":" + crypt.MD5([]byte(path+sk))
-}
+func (this *Auth) Verify(ctx context.Context, req *protocol.Message, token string) error {
+	// AK/SK查询
+	// token验证
+	// service path/method授权策略
+	// message.Payload验签
 
-func (this Auth) Verify(ctx context.Context, req *protocol.Message, token string) error {
+	// {token版本/加密方式}:{ak}:{token加密}
 	sp := strings.Split(token, ":")
 	if len(sp) != 3 {
-		return errors.New("invalid token")
+		return errors.New("invalid token split len != 3")
 	}
-
-	ak := sp[1]
-	sk := "sk"
-	if token != Token(ak, sk, req.ServicePath) {
-		return errors.New("invalid token")
-	}
-
-	//sub := "alice" // the user that wants to access a resource.
-	//obj := "data1" // the resource that is going to be accessed.
-	//act := "read"  // the operation that the user performs on the resource.
-	if this.cse.Enforce(ak, req.ServicePath, req.ServiceMethod) != true {
-		// deny the request, show an error
-		return errors.New("deny the request")
-	}
-
-	return nil
 
 	// AK/SK查询
+	// @TODO AccessKey存储引擎
+	ak := AccessKey{
+		AccessKeyId:     sp[1],
+		AccessKeySecret: "sk",
+		Roles:           []string{"client"},
+	}
 
 	// token验证
+	if token != Token(ak.AccessKeyId, ak.AccessKeySecret, req.ServicePath) {
+		return errors.New("invalid token")
+	}
 
 	// service path/method授权策略
+	for _, v := range ak.Roles {
+		if this.cse.Enforce(v, req.ServicePath, req.ServiceMethod) == true {
+			return nil
+		}
+	}
 
-	// message.Payload验签
+	// deny the request, show an error
+	return errors.New("deny the request")
+}
+
+func (this *Auth) casbinUpdateCallback(rev string) {
+	log.Infof("new revision detected:", rev)
+	this.cse.LoadPolicy()
 }

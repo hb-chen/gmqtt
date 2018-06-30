@@ -28,8 +28,6 @@ $ go run -tags "etcd" main.go
 # RPC Auth服务，[-h]帮助查看可选参数
 $ cd auth
 $ go run -tags "etcd" main.go
-
-
 ```
 
 #### MQTT Web Client
@@ -37,18 +35,45 @@ $ go run -tags "etcd" main.go
 > [Github源码](https://github.com/hb-chen/hivemq-mqtt-web-client)
 
 ## 组件
-- [x] gateway
-    - [x] sessions
+- gateway
+    - sessions
+        - [x] mock
+        - [x] redis
+    - topic
         - [x] mem
-        - [ ] redis
-    - [x] topic
-        - [x] mem
-- [x] auth
-    - [x] mock
-    - [x] rpc
-- [x] broker
+    - client auth
+        - [x] mock
+        - [x] rpc
+    - pub/sub auth
+        - [ ] mock
+        - [ ] rpc
+- broker
     - [x] kafka
-- [ ] console
+    
+- > Developing
+    - api
+        - auth
+            - [ ]RPC服务间的访问控制：RBAC
+        - client
+            - auth
+                - [x] client auth
+                - [ ] pub/sub auth
+            - register
+                - [ ] register
+                - [ ] unregister
+        - cluster
+            - nodes
+                - 节点列表
+            - clients
+                - 终端列表
+            - sessions
+                - 会话列表
+            - topics
+                - 话题信息
+            - subscriptions
+                - 订阅信息
+    - console
+    - deploy
 
 ## Frameworks
 - [rpcx](https://github.com/smallnest/rpcx)
@@ -86,9 +111,8 @@ Total Received 1000000 messages in 68339.624216 ms, 0.068340 ms/msg, 14632 msgs/
 ## 备用命令
 #### Protobuf
 ```bash
-protoc -I=. \
-  --go_out=. \
-  auth/proto/auth.proto
+# 在.proto有import时注意相对的路径
+protoc -I=$GOPATH/src:.  --go_out=.  api/proto/define.proto
 ```
 #### Kafka
 ```bash

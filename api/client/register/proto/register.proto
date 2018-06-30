@@ -2,6 +2,10 @@ syntax = "proto3";
 
 package api_client_register;
 
+enum METHOD {
+    Register = 0;
+    UnRegister = 1;
+}
 
 message RegisterReq {
     string clientId = 1;
@@ -11,4 +15,12 @@ message RegisterResp {
     string clientId = 1;
     string name = 2;
     string pwd = 3;
+}
+
+message UnregisterReq {
+    string clientId = 1;
+}
+
+message UnregisterResp {
+    string clientId = 1;
 }
