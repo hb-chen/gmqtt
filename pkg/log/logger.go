@@ -4,12 +4,12 @@ import (
 	"log"
 	"os"
 
-	l "github.com/smallnest/rpcx/log"
 	"github.com/fatih/color"
+	l "github.com/smallnest/rpcx/log"
 )
 
 const (
-	DEBUG    Lvl = iota
+	DEBUG Lvl = iota
 	INFO
 	WARN
 	ERROR
@@ -33,7 +33,7 @@ func init() {
 }
 
 type (
-	Lvl uint
+	Lvl       uint
 	colorFunc func(format string, a ...interface{}) string
 )
 

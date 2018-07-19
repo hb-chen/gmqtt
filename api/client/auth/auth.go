@@ -2,11 +2,12 @@ package auth
 
 import (
 	"context"
-	"github.com/smallnest/rpcx/server"
-	"github.com/hb-go/micro-mq/pkg/log"
 
-	client "github.com/hb-go/micro-mq/api/client/proto"
+	"github.com/smallnest/rpcx/server"
+
 	pb "github.com/hb-go/micro-mq/api/client/auth/proto"
+	client "github.com/hb-go/micro-mq/api/client/proto"
+	"github.com/hb-go/micro-mq/pkg/log"
 )
 
 func Register(s *server.Server) {

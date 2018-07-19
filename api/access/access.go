@@ -2,7 +2,6 @@ package access
 
 import (
 	"github.com/smallnest/rpcx/server"
-
 	//pbAccess "github.com/hb-go/micro-mq/api/access/proto"
 )
 

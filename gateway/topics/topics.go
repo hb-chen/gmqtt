@@ -29,9 +29,9 @@ import (
 
 	"github.com/surgemq/message"
 
-	"github.com/hb-go/micro-mq/pkg/log"
 	"github.com/hb-go/micro-mq/broker"
 	. "github.com/hb-go/micro-mq/gateway/conf"
+	"github.com/hb-go/micro-mq/pkg/log"
 )
 
 const (
@@ -119,6 +119,8 @@ func NewManager(providerName string, b broker.Broker, h broker.Handler) (*Manage
 }
 
 func (this *Manager) Subscribe(topic []byte, qos byte, subscriber interface{}) (byte, error) {
+	// @TODO 订阅鉴权
+
 	// broker订阅
 	// 检查topic是否已订阅
 	// broker topic匹配规则转换

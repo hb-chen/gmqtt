@@ -4,10 +4,10 @@ import (
 	"flag"
 	"net/url"
 
-	"github.com/hb-go/micro-mq/pkg/log"
-	. "github.com/hb-go/micro-mq/gateway/conf"
 	"github.com/hb-go/micro-mq/gateway/auth"
+	. "github.com/hb-go/micro-mq/gateway/conf"
 	"github.com/hb-go/micro-mq/gateway/service"
+	"github.com/hb-go/micro-mq/pkg/log"
 )
 
 var (

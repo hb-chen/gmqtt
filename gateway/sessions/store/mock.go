@@ -2,8 +2,8 @@ package store
 
 import (
 	"fmt"
-	"sync"
 	"reflect"
+	"sync"
 
 	"github.com/hb-go/micro-mq/gateway/sessions"
 )
@@ -21,7 +21,7 @@ func NewMockStore() (*MockStore, error) {
 	return mock, nil
 }
 
-func (this *MockStore) Get(id string, ) (*sessions.Session, error) {
+func (this *MockStore) Get(id string) (*sessions.Session, error) {
 	this.mu.RLock()
 	defer this.mu.RUnlock()
 

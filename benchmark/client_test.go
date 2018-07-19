@@ -18,13 +18,13 @@
 package benchmark
 
 import (
+	"errors"
 	"fmt"
+	"math/rand"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
-	"math/rand"
-	"sync/atomic"
-	"errors"
 
 	MQTT "github.com/eclipse/paho.mqtt.golang"
 	"github.com/stretchr/testify/require"
@@ -46,8 +46,8 @@ var (
 	qos         byte          = 1
 	order       bool          = true
 	nap         int64         = 100
-	host        string        = "127.0.0.1"
-	port        int           = 1883
+	host        string        = "192.168.1.6"
+	port        int           = 1884
 	user        string        = "name"
 	pass        string        = "pwd"
 	version     int           = 4

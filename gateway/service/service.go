@@ -1,26 +1,26 @@
 package service
 
 import (
-	"net"
-	"sync"
-	"io"
 	"errors"
 	"fmt"
+	"io"
+	"net"
 	"reflect"
+	"sync"
 	"sync/atomic"
 
 	"github.com/mailru/easygo/netpoll"
 	"github.com/surgemq/message"
 
-	"github.com/hb-go/micro-mq/pkg/log"
 	"github.com/hb-go/micro-mq/broker"
 	"github.com/hb-go/micro-mq/gateway/sessions"
 	"github.com/hb-go/micro-mq/gateway/topics"
+	"github.com/hb-go/micro-mq/pkg/log"
 )
 
 type (
 	OnCompleteFunc func(msg, ack message.Message, err error) error
-	OnPublishFunc func(msg *message.PublishMessage) error
+	OnPublishFunc  func(msg *message.PublishMessage) error
 )
 
 var (
@@ -233,7 +233,7 @@ func (svc *service) stop() {
 	if svc.sess.Cmsg.CleanSession() && svc.sessMgr != nil {
 		svc.sessMgr.Del(svc.sess.ID())
 	} else {
-		svc.sessMgr.Save(svc.sess.ID(),svc.sess)
+		svc.sessMgr.Save(svc.sess.ID(), svc.sess)
 	}
 
 	svc.conn = nil

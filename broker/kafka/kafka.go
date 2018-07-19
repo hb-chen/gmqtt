@@ -9,9 +9,9 @@ import (
 	"github.com/pborman/uuid"
 	sc "gopkg.in/bsm/sarama-cluster.v2"
 
-	"github.com/hb-go/micro-mq/pkg/log"
 	"github.com/hb-go/micro-mq/broker"
 	"github.com/hb-go/micro-mq/broker/codec/json"
+	"github.com/hb-go/micro-mq/pkg/log"
 )
 
 const BrokerKafka = "kafka"
@@ -226,7 +226,7 @@ func (k *kBroker) Subscribe(topic string, handler broker.Handler, opts ...broker
 					km: sm,
 				}); err == nil && opt.AutoAck {
 					c.MarkOffset(sm, "")
-				} else if (err != nil) {
+				} else if err != nil {
 					log.Errorf("broker kafka: handler error:%v", err)
 				}
 			}

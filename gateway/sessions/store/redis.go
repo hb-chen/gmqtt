@@ -1,10 +1,11 @@
 package store
 
 import (
+	"time"
+
 	"github.com/go-redis/redis"
 
 	"github.com/hb-go/micro-mq/gateway/sessions"
-	"time"
 )
 
 const sorted_set_key = "sorted_set_key"
@@ -33,7 +34,7 @@ func NewRedisStore(addr string, password string) (*RedisStore, error) {
 	return rs, nil
 }
 
-func (this *RedisStore) Get(id string, ) (*sessions.Session, error) {
+func (this *RedisStore) Get(id string) (*sessions.Session, error) {
 	val, err := this.client.Get(id).Bytes()
 
 	sess := &sessions.Session{}

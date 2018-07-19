@@ -3,8 +3,8 @@ package cluster
 import (
 	"context"
 
-	pb "github.com/hb-go/micro-mq/api/cluster/proto/subscriptions"
 	pbClients "github.com/hb-go/micro-mq/api/cluster/proto/clients"
+	pb "github.com/hb-go/micro-mq/api/cluster/proto/subscriptions"
 	pbTopics "github.com/hb-go/micro-mq/api/cluster/proto/topics"
 )
 
