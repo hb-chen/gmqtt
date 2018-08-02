@@ -7,7 +7,10 @@
 - 根据业务场景的需求，需要考虑Node节点消息消费与生产速度的匹配
     - Client间的pub/sub关系比较多，如`n`个node, 发送`m`条消息/topic/node，节点消费的需求是`n`*`m`条/topic
     - Client端多为pub操作，而系统下发消息较少的情况，节点消费需求则比较低
+    
+Gateway编程模型
 
+![micro-mq](/doc/img/gateway_model.jpg "gateway_modem")
 ### Features
 
 ## 运行
@@ -53,7 +56,7 @@ $ go run -tags "etcd" main.go
 - > Developing
     - api
         - auth
-            - [ ]RPC服务间的访问控制：RBAC
+            - [ ] RPC服务间的访问控制：RBAC
         - client
             - auth
                 - [x] client auth
