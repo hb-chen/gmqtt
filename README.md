@@ -136,7 +136,7 @@ kafka-manager.zkhosts="localhost:2181"
 ```
 
 ## 参考内容
-- [[译]百万级WebSockets和Go语言](http://xiecode.cn/post/cn_06_a_million_websockets_and_go/)
+- [[译]百万级WebSockets和Go语言](https://colobu.com/2017/12/13/A-Million-WebSockets-and-Go/)
     - [[原]A Million WebSockets and Go](https://medium.freecodecamp.org/million-websockets-and-go-cc58418460bb)
 - [SurgeMQ](https://github.com/surgemq/surgemq)
 - [Micro](http://github.com/micro)
