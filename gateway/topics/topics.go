@@ -26,6 +26,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"sync"
 
 	"github.com/surgemq/message"
 
@@ -96,7 +97,7 @@ type Manager struct {
 	p TopicsProvider
 
 	broker broker.Broker
-	subers map[string]broker.Subscriber
+	subers sync.Map
 
 	subHandler broker.Handler
 
@@ -114,7 +115,6 @@ func NewManager(providerName string, b broker.Broker, h broker.Handler) (*Manage
 		p:          p,
 		broker:     b,
 		subHandler: h,
-		subers:     make(map[string]broker.Subscriber),
 	}, nil
 }
 
@@ -127,7 +127,7 @@ func (this *Manager) Subscribe(topic []byte, qos byte, subscriber interface{}) (
 	if this.broker != nil && this.subHandler != nil {
 		brTopic := TopicToBrokerTopic(topic)
 		log.Debugf("broker topic:%v subscribe", brTopic)
-		_, ok := this.subers[brTopic]
+		_, ok := this.subers.Load(brTopic)
 		if !ok {
 			// broker只订阅一级话题，通过header传递MQTT特有属性QoS、Topic
 			// @TODO Broker队列与Gateway实例ID绑定，即Kafka的Consumer Group
@@ -137,7 +137,7 @@ func (this *Manager) Subscribe(topic []byte, qos byte, subscriber interface{}) (
 				return message.QosFailure, err
 			} else {
 				log.Infof("broker topic:%v subscribed", brTopic)
-				this.subers[brTopic] = suber
+				this.subers.Store(brTopic, suber)
 			}
 		}
 	}
@@ -164,12 +164,16 @@ func (this *Manager) Unsubscribe(topic []byte, subscriber interface{}) error {
 	if this.broker != nil && this.subHandler != nil {
 		if nodesNum <= 0 {
 			brTopic := TopicToBrokerTopic(topic)
-			suber, ok := this.subers[brTopic]
+			v, ok := this.subers.Load(brTopic)
 			if ok {
-				if err = suber.Unsubscribe(); err != nil {
-					return err
+				suber, ok := v.(broker.Subscriber)
+				if ok {
+					if err = suber.Unsubscribe(); err != nil {
+						return err
+					}
 				}
-				delete(this.subers, brTopic)
+
+				this.subers.Delete(brTopic)
 			}
 		}
 	}

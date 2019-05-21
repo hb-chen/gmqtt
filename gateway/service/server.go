@@ -59,7 +59,7 @@ type Server struct {
 	//serviceMap   map[string]*service
 
 	mu         sync.RWMutex
-	activeConn map[net.Conn]struct{}
+	activeConn sync.Map
 	doneChan   chan struct{}
 
 	subs []interface{}
@@ -155,6 +155,10 @@ func (srv *Server) ListenAndServe(network, address string) error {
 		return err
 	}
 
+	srv.mu.Lock()
+	srv.ln = ln
+	srv.mu.Unlock()
+
 	defer func() {
 		srv.Close()
 	}()
@@ -162,13 +166,6 @@ func (srv *Server) ListenAndServe(network, address string) error {
 	log.Infof("listen and serve")
 
 	var tempDelay time.Duration
-
-	srv.mu.Lock()
-	srv.ln = ln
-	if srv.activeConn == nil {
-		srv.activeConn = make(map[net.Conn]struct{})
-	}
-	srv.mu.Unlock()
 
 	connPool := gopool.NewPool(2048, 256, 512)
 
@@ -209,9 +206,7 @@ func (srv *Server) ListenAndServe(network, address string) error {
 		//	tc.SetKeepAlivePeriod(30 * time.Second)
 		//}
 
-		srv.mu.Lock()
-		srv.activeConn[conn] = struct{}{}
-		srv.mu.Unlock()
+		srv.activeConn.Store(conn, struct{}{})
 
 		// @TODO 连接池超出一定等待队列后拒绝，由于是长连接队列应该是0等待，或设计连接数队列等待超时
 		err = connPool.ScheduleTimeout(time.Microsecond*time.Duration(100), func() {
@@ -266,9 +261,8 @@ func (srv *Server) serveConn(conn net.Conn) (err error) {
 			buf = buf[:ss]
 			log.Errorf("serving %s panic error: %s, stack:\n %s", conn.RemoteAddr(), err, buf)
 		}
-		srv.mu.Lock()
-		delete(srv.activeConn, conn)
-		srv.mu.Unlock()
+
+		srv.activeConn.Delete(conn)
 		conn.Close()
 
 		if err != nil {

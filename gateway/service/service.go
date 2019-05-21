@@ -89,6 +89,7 @@ func (svc *service) start() (err error) {
 	desc := netpoll.Must(netpoll.HandleRead(svc.conn))
 	defer func() {
 		if err = poller.Stop(desc); err != nil {
+			desc.Close()
 			log.Errorf("poller stop error: %v", err)
 		}
 	}()
