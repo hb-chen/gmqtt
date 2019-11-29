@@ -1,6 +1,8 @@
 # Micro MQ
 以微服务+MQ构建支持高并发连接的分布式消息服务系统
 
+> [消息持久化及写放大模式设计](https://github.com/hb-go/micro-mq/issues/1#issuecomment-518517597)
+
 ![micro-mq](/doc/img/architecture.jpg "micro-mq")
 
 - Gateway节点`Node`通过订阅MQ消息的方式，完成消息在节点间的转发
