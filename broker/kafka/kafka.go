@@ -9,9 +9,9 @@ import (
 	"github.com/pborman/uuid"
 	sc "gopkg.in/bsm/sarama-cluster.v2"
 
-	"github.com/hb-go/micro-mq/broker"
-	"github.com/hb-go/micro-mq/broker/codec/json"
-	"github.com/hb-go/micro-mq/pkg/log"
+	"github.com/hb-chen/micro-mq/broker"
+	"github.com/hb-chen/micro-mq/broker/codec/json"
+	"github.com/hb-chen/micro-mq/pkg/log"
 )
 
 const BrokerKafka = "kafka"

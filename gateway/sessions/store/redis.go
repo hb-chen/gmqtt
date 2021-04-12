@@ -5,7 +5,7 @@ import (
 
 	"github.com/go-redis/redis"
 
-	"github.com/hb-go/micro-mq/gateway/sessions"
+	"github.com/hb-chen/micro-mq/gateway/sessions"
 )
 
 const sorted_set_key = "sorted_set_key"

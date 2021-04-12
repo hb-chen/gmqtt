@@ -6,25 +6,24 @@ import (
 
 	//"github.com/casbin/redis-adapter"
 	"github.com/casbin/casbin/persist/file-adapter"
-	"github.com/casbin/etcd-watcher"
 	"github.com/casbin/redis-adapter"
 	metrics "github.com/rcrowley/go-metrics"
 	"github.com/smallnest/rpcx/server"
 	"github.com/smallnest/rpcx/serverplugin"
 
-	"github.com/hb-go/micro-mq/api/access"
-	"github.com/hb-go/micro-mq/api/auth"
-	"github.com/hb-go/micro-mq/api/client"
-	"github.com/hb-go/micro-mq/api/cluster"
-	"github.com/hb-go/micro-mq/api/proto"
-	"github.com/hb-go/micro-mq/pkg/log"
-	"github.com/hb-go/micro-mq/pkg/util/conv"
+	"github.com/hb-chen/micro-mq/api/access"
+	"github.com/hb-chen/micro-mq/api/auth"
+	"github.com/hb-chen/micro-mq/api/client"
+	"github.com/hb-chen/micro-mq/api/cluster"
+	"github.com/hb-chen/micro-mq/api/proto"
+	"github.com/hb-chen/micro-mq/pkg/log"
+	"github.com/hb-chen/micro-mq/pkg/util/conv"
 )
 
 var (
-	cmdHelp  = flag.Bool("h", false, "帮助")
-	addr     = flag.String("addr", "127.0.0.1:8972", "server address")
-	etcdAddr = flag.String("etcdAddr", "127.0.0.1:2379", "etcd address")
+	cmdHelp    = flag.Bool("h", false, "帮助")
+	addr       = flag.String("addr", "127.0.0.1:8972", "server address")
+	consulAddr = flag.String("consulAddr", "127.0.0.1:8500", "consul address")
 )
 
 func init() {
@@ -52,8 +51,7 @@ func main() {
 	if false {
 		// @TODO redis adapter, etcd watcher管理
 		adapter := redisadapter.NewAdapter("tcp", "127.0.0.1:6379")
-		w := etcdwatcher.NewWatcher("http://127.0.0.1:2379")
-		a = auth.NewAuth(adapter, w)
+		a = auth.NewAuth(adapter, nil)
 	} else {
 		adapter := fileadapter.NewAdapter("conf/casbin/rbac_with_deny_policy.csv")
 		a = auth.NewAuth(adapter, nil)
@@ -70,9 +68,9 @@ func main() {
 }
 
 func addRegistryPlugin(s *server.Server) {
-	r := &serverplugin.EtcdRegisterPlugin{
+	r := serverplugin.ConsulRegisterPlugin{
 		ServiceAddress: "tcp@" + *addr,
-		EtcdServers:    []string{*etcdAddr},
+		ConsulServers:  []string{*consulAddr},
 		BasePath:       conv.ProtoEnumsToRpcxBasePath(proto.BASE_PATH_name),
 		Metrics:        metrics.NewRegistry(),
 		UpdateInterval: time.Minute,

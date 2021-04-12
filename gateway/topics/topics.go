@@ -30,9 +30,9 @@ import (
 
 	"github.com/surgemq/message"
 
-	"github.com/hb-go/micro-mq/broker"
-	. "github.com/hb-go/micro-mq/gateway/conf"
-	"github.com/hb-go/micro-mq/pkg/log"
+	"github.com/hb-chen/micro-mq/broker"
+	. "github.com/hb-chen/micro-mq/gateway/conf"
+	"github.com/hb-chen/micro-mq/pkg/log"
 )
 
 const (

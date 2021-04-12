@@ -3,9 +3,9 @@ package cluster
 import (
 	"context"
 
-	pbClients "github.com/hb-go/micro-mq/api/cluster/proto/clients"
-	pb "github.com/hb-go/micro-mq/api/cluster/proto/subscriptions"
-	pbTopics "github.com/hb-go/micro-mq/api/cluster/proto/topics"
+	pbClients "github.com/hb-chen/micro-mq/api/cluster/proto/clients"
+	pb "github.com/hb-chen/micro-mq/api/cluster/proto/subscriptions"
+	pbTopics "github.com/hb-chen/micro-mq/api/cluster/proto/topics"
 )
 
 func (*cluster) Subscriptions(ctx context.Context, req *pb.SubscriptionsReq, resp *pb.SubscriptionsResp) error {

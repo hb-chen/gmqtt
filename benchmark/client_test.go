@@ -29,7 +29,7 @@ import (
 	MQTT "github.com/eclipse/paho.mqtt.golang"
 	"github.com/stretchr/testify/require"
 
-	"github.com/hb-go/micro-mq/pkg/log"
+	"github.com/hb-chen/micro-mq/pkg/log"
 )
 
 var f MQTT.MessageHandler = func(client MQTT.Client, msg MQTT.Message) {

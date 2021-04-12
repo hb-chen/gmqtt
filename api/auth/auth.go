@@ -11,8 +11,8 @@ import (
 	"github.com/casbin/casbin/persist/file-adapter"
 	"github.com/smallnest/rpcx/protocol"
 
-	"github.com/hb-go/micro-mq/pkg/log"
-	"github.com/hb-go/micro-mq/pkg/util/crypt"
+	"github.com/hb-chen/micro-mq/pkg/log"
+	"github.com/hb-chen/micro-mq/pkg/util/crypt"
 )
 
 type Auth struct {

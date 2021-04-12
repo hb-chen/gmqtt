@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-import "github.com/hb-go/micro-mq/api/cluster/proto/topics/topics.proto";
+import "github.com/hb-chen/micro-mq/api/cluster/proto/topics/topics.proto";
 
 package sessions;
 

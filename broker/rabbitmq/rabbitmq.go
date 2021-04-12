@@ -8,7 +8,7 @@ import (
 
 	"github.com/streadway/amqp"
 
-	"github.com/hb-go/micro-mq/broker"
+	"github.com/hb-chen/micro-mq/broker"
 )
 
 type rbroker struct {

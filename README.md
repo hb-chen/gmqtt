@@ -1,7 +1,7 @@
 # Micro MQ
 以微服务+MQ构建支持高并发连接的分布式消息服务系统
 
-> [消息持久化及写放大模式设计](https://github.com/hb-go/micro-mq/issues/1#issuecomment-518517597)
+> [消息持久化及写放大模式设计](https://github.com/hb-chen/micro-mq/issues/1#issuecomment-518517597)
 
 ![micro-mq](/doc/img/architecture.jpg "micro-mq")
 
@@ -28,11 +28,11 @@ Gateway编程模型
 ```bash
 # 启动Gateway，[-h]帮助查看可选参数
 $ cd gateway
-$ go run -tags "etcd" main.go
+$ go run -tags "consul" main.go
 
 # RPC Auth服务，[-h]帮助查看可选参数
 $ cd api
-$ go run -tags "etcd" main.go
+$ go run -tags "consul" main.go
 ```
 
 #### MQTT Web Client

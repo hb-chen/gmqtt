@@ -13,7 +13,7 @@ ws_addr = ":8080"
 [auth]
 # MockSuccess、MockFailure、rpc
 provider = "MockSuccess"
-addrs = ["127.0.0.1:2379"] # rpc服务发现
+addrs = ["127.0.0.1:8500"] # rpc服务发现
 
 [broker]
 # mock、kafka，默认mock

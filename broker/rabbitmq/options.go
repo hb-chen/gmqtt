@@ -4,7 +4,7 @@ package rabbitmq
 import (
 	"context"
 
-	"github.com/hb-go/micro-mq/broker"
+	"github.com/hb-chen/micro-mq/broker"
 )
 
 type durableQueueKey struct{}
