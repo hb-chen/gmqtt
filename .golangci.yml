@@ -1,0 +1,30 @@
+run:
+  deadline: 10m
+  skip-dirs:
+    - protoc-gen-hb-grpc-gateway
+linters:
+  disable-all: false
+  enable-all: false
+  enable:
+    - megacheck
+    - staticcheck
+    - varcheck
+    - gosimple
+    - prealloc
+    - scopelint
+    - goimports
+    - unconvert
+    - govet
+    - nakedret
+    - structcheck
+    - gosec
+    - maligned
+    - interfacer
+    - typecheck
+    - dupl
+  disable:
+    - gocritic
+    - unused
+    - deadcode
+    - errcheck
+

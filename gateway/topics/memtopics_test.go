@@ -15,6 +15,7 @@
 package topics
 
 import (
+	"github.com/hb-chen/gmqtt/broker"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -230,7 +231,7 @@ func TestSNodeRemove1(t *testing.T) {
 	topic := []byte("sport/tennis/player1/#")
 
 	n.sinsert(topic, 1, "sub1")
-	err := n.sremove([]byte("sport/tennis/player1/#"), "sub1")
+	_, err := n.sremove([]byte("sport/tennis/player1/#"), "sub1")
 
 	require.NoError(t, err)
 	require.Equal(t, 0, len(n.snodes))
@@ -242,7 +243,7 @@ func TestSNodeRemove2(t *testing.T) {
 	topic := []byte("sport/tennis/player1/#")
 
 	n.sinsert(topic, 1, "sub1")
-	err := n.sremove([]byte("sport/tennis/player1"), "sub1")
+	_, err := n.sremove([]byte("sport/tennis/player1"), "sub1")
 
 	require.Error(t, err)
 }
@@ -253,7 +254,7 @@ func TestSNodeRemove3(t *testing.T) {
 
 	n.sinsert(topic, 1, "sub1")
 	n.sinsert(topic, 1, "sub2")
-	err := n.sremove([]byte("sport/tennis/player1/#"), nil)
+	_, err := n.sremove([]byte("sport/tennis/player1/#"), nil)
 
 	require.NoError(t, err)
 	require.Equal(t, 0, len(n.snodes))
@@ -529,7 +530,9 @@ func TestMemTopicsSubscription(t *testing.T) {
 	p := NewMemProvider()
 	Register("mem", p)
 
-	mgr, err := NewManager("mem")
+	mgr, err := NewManager("mem", broker.NewBroker(), func(publication broker.Publication) error {
+		return nil
+	})
 
 	MaxQosAllowed = 1
 	qos, err := mgr.Subscribe([]byte("sports/tennis/+/stats"), 2, "sub1")
@@ -565,7 +568,9 @@ func TestMemTopicsRetained(t *testing.T) {
 	p := NewMemProvider()
 	Register("mem", p)
 
-	mgr, err := NewManager("mem")
+	mgr, err := NewManager("mem", broker.NewBroker(), func(publication broker.Publication) error {
+		return nil
+	})
 	require.NoError(t, err)
 	require.NotNil(t, mgr)
 
