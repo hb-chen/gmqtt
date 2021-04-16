@@ -2,7 +2,7 @@ package access
 
 import (
 	"github.com/smallnest/rpcx/server"
-	//pbAccess "github.com/hb-chen/micro-mq/api/access/proto"
+	//pbAccess "github.com/hb-chen/gmqtt/api/access/proto"
 )
 
 type Access struct {

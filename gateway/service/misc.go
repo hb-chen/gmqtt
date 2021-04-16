@@ -22,7 +22,7 @@ import (
 
 	"github.com/surgemq/message"
 
-	"github.com/hb-chen/micro-mq/pkg/log"
+	"github.com/hb-chen/gmqtt/pkg/log"
 )
 
 func getConnectMessage(conn io.Reader) (*message.ConnectMessage, error) {

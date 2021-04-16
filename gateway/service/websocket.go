@@ -8,7 +8,7 @@ import (
 
 	"golang.org/x/net/websocket"
 
-	"github.com/hb-chen/micro-mq/pkg/log"
+	"github.com/hb-chen/gmqtt/pkg/log"
 )
 
 func DefaultListenAndServeWebsocket() error {

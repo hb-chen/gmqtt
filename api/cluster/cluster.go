@@ -3,7 +3,7 @@ package cluster
 import (
 	"github.com/smallnest/rpcx/server"
 
-	pb "github.com/hb-chen/micro-mq/api/cluster/proto"
+	pb "github.com/hb-chen/gmqtt/api/cluster/proto"
 )
 
 type cluster struct {

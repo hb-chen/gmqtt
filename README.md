@@ -1,7 +1,7 @@
 # Micro MQ
 以微服务+MQ构建支持高并发连接的分布式消息服务系统
 
-> [消息持久化及写放大模式设计](https://github.com/hb-chen/micro-mq/issues/1#issuecomment-518517597)
+> [消息持久化及写放大模式设计](https://github.com/hb-chen/gmqtt/issues/1#issuecomment-518517597)
 
 ![micro-mq](/doc/img/architecture.jpg "micro-mq")
 

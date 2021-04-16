@@ -1,4 +1,4 @@
-module github.com/hb-chen/micro-mq
+module github.com/hb-chen/gmqtt
 
 go 1.15
 

@@ -22,7 +22,7 @@ addrs = []
 
 [sessions]
 # mock、redis，默认mock
-provider = "redis"
+provider = "mock"
 
 [database]
 name = "db_name"

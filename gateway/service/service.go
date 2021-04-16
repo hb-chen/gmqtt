@@ -12,10 +12,10 @@ import (
 	"github.com/mailru/easygo/netpoll"
 	"github.com/surgemq/message"
 
-	"github.com/hb-chen/micro-mq/broker"
-	"github.com/hb-chen/micro-mq/gateway/sessions"
-	"github.com/hb-chen/micro-mq/gateway/topics"
-	"github.com/hb-chen/micro-mq/pkg/log"
+	"github.com/hb-chen/gmqtt/broker"
+	"github.com/hb-chen/gmqtt/gateway/sessions"
+	"github.com/hb-chen/gmqtt/gateway/topics"
+	"github.com/hb-chen/gmqtt/pkg/log"
 )
 
 type (

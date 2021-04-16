@@ -11,13 +11,13 @@ import (
 	"github.com/smallnest/rpcx/server"
 	"github.com/smallnest/rpcx/serverplugin"
 
-	"github.com/hb-chen/micro-mq/api/access"
-	"github.com/hb-chen/micro-mq/api/auth"
-	"github.com/hb-chen/micro-mq/api/client"
-	"github.com/hb-chen/micro-mq/api/cluster"
-	"github.com/hb-chen/micro-mq/api/proto"
-	"github.com/hb-chen/micro-mq/pkg/log"
-	"github.com/hb-chen/micro-mq/pkg/util/conv"
+	"github.com/hb-chen/gmqtt/api/access"
+	"github.com/hb-chen/gmqtt/api/auth"
+	"github.com/hb-chen/gmqtt/api/client"
+	"github.com/hb-chen/gmqtt/api/cluster"
+	"github.com/hb-chen/gmqtt/api/proto"
+	"github.com/hb-chen/gmqtt/pkg/log"
+	"github.com/hb-chen/gmqtt/pkg/util/conv"
 )
 
 var (

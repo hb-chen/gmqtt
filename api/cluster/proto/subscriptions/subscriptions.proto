@@ -1,7 +1,7 @@
 syntax = "proto3";
 
-import "github.com/hb-chen/micro-mq/api/cluster/proto/clients/clients.proto";
-import "github.com/hb-chen/micro-mq/api/cluster/proto/topics/topics.proto";
+import "github.com/hb-chen/gmqtt/api/cluster/proto/clients/clients.proto";
+import "github.com/hb-chen/gmqtt/api/cluster/proto/topics/topics.proto";
 
 package subscriptions;
 

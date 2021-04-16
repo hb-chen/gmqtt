@@ -3,7 +3,7 @@ package cluster
 import (
 	"context"
 
-	pb "github.com/hb-chen/micro-mq/api/cluster/proto/clients"
+	pb "github.com/hb-chen/gmqtt/api/cluster/proto/clients"
 )
 
 func (*cluster) Clients(ctx context.Context, req *pb.ClientsReq, resp *pb.ClientsResp) error {

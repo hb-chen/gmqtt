@@ -3,7 +3,7 @@ package json
 import (
 	"encoding/json"
 
-	"github.com/hb-chen/micro-mq/broker/codec"
+	"github.com/hb-chen/gmqtt/broker/codec"
 )
 
 type jsonCodec struct{}

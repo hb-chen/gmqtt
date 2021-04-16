@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"sync"
 
-	"github.com/hb-chen/micro-mq/gateway/sessions"
+	"github.com/hb-chen/gmqtt/gateway/sessions"
 )
 
 type MockStore struct {

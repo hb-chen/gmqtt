@@ -3,8 +3,8 @@ package noop
 import (
 	"errors"
 
-	"github.com/hb-chen/micro-mq/broker"
-	"github.com/hb-chen/micro-mq/broker/codec"
+	"github.com/hb-chen/gmqtt/broker"
+	"github.com/hb-chen/gmqtt/broker/codec"
 )
 
 type noopCodec struct{}

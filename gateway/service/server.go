@@ -10,15 +10,15 @@ import (
 
 	"github.com/surgemq/message"
 
-	"github.com/hb-chen/micro-mq/broker"
-	"github.com/hb-chen/micro-mq/broker/kafka"
-	"github.com/hb-chen/micro-mq/gateway/auth"
-	. "github.com/hb-chen/micro-mq/gateway/conf"
-	"github.com/hb-chen/micro-mq/gateway/sessions"
-	"github.com/hb-chen/micro-mq/gateway/sessions/store"
-	"github.com/hb-chen/micro-mq/gateway/topics"
-	"github.com/hb-chen/micro-mq/pkg/gopool"
-	"github.com/hb-chen/micro-mq/pkg/log"
+	"github.com/hb-chen/gmqtt/broker"
+	"github.com/hb-chen/gmqtt/broker/kafka"
+	"github.com/hb-chen/gmqtt/gateway/auth"
+	. "github.com/hb-chen/gmqtt/gateway/conf"
+	"github.com/hb-chen/gmqtt/gateway/sessions"
+	"github.com/hb-chen/gmqtt/gateway/sessions/store"
+	"github.com/hb-chen/gmqtt/gateway/topics"
+	"github.com/hb-chen/gmqtt/pkg/gopool"
+	"github.com/hb-chen/gmqtt/pkg/log"
 )
 
 var (

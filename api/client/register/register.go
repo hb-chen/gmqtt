@@ -5,8 +5,8 @@ import (
 
 	"github.com/smallnest/rpcx/server"
 
-	client "github.com/hb-chen/micro-mq/api/client/proto"
-	pb "github.com/hb-chen/micro-mq/api/client/register/proto"
+	client "github.com/hb-chen/gmqtt/api/client/proto"
+	pb "github.com/hb-chen/gmqtt/api/client/register/proto"
 )
 
 func Register(s *server.Server) {

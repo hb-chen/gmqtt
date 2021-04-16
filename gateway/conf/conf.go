@@ -8,7 +8,7 @@ import (
 	"github.com/BurntSushi/toml"
 	"github.com/pborman/uuid"
 
-	"github.com/hb-chen/micro-mq/pkg/log"
+	"github.com/hb-chen/gmqtt/pkg/log"
 )
 
 var (

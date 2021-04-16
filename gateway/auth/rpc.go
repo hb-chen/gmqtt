@@ -7,12 +7,12 @@ import (
 	"github.com/smallnest/rpcx/client"
 	"github.com/smallnest/rpcx/share"
 
-	"github.com/hb-chen/micro-mq/api/auth"
-	pbAuth "github.com/hb-chen/micro-mq/api/client/auth/proto"
-	pbClient "github.com/hb-chen/micro-mq/api/client/proto"
-	pbApi "github.com/hb-chen/micro-mq/api/proto"
-	"github.com/hb-chen/micro-mq/pkg/log"
-	"github.com/hb-chen/micro-mq/pkg/util/conv"
+	"github.com/hb-chen/gmqtt/api/auth"
+	pbAuth "github.com/hb-chen/gmqtt/api/client/auth/proto"
+	pbClient "github.com/hb-chen/gmqtt/api/client/proto"
+	pbApi "github.com/hb-chen/gmqtt/api/proto"
+	"github.com/hb-chen/gmqtt/pkg/log"
+	"github.com/hb-chen/gmqtt/pkg/util/conv"
 )
 
 const (

@@ -4,7 +4,7 @@ package rabbitmq
 import (
 	"context"
 
-	"github.com/hb-chen/micro-mq/broker"
+	"github.com/hb-chen/gmqtt/broker"
 )
 
 type durableQueueKey struct{}

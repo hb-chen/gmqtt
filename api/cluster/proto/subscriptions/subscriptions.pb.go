@@ -17,8 +17,8 @@ package subscriptions
 import proto "github.com/golang/protobuf/proto"
 import fmt "fmt"
 import math "math"
-import clients "github.com/hb-chen/micro-mq/api/cluster/proto/clients"
-import topics "github.com/hb-chen/micro-mq/api/cluster/proto/topics"
+import clients "github.com/hb-chen/gmqtt/api/cluster/proto/clients"
+import topics "github.com/hb-chen/gmqtt/api/cluster/proto/topics"
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal

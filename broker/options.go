@@ -4,7 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 
-	"github.com/hb-chen/micro-mq/broker/codec"
+	"github.com/hb-chen/gmqtt/broker/codec"
 )
 
 type Options struct {
