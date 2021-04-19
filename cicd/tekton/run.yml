@@ -1,0 +1,19 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  name: gmqtt-pipeline-run
+  #generateName: gmqtt-pipeline-run-
+spec:
+  serviceAccountName: build-bot
+  pipelineRef:
+    name: gmqtt-pipeline
+  params:
+      - name: url
+        value: https://github.com/hb-chen/gmqtt
+        - name: revision
+          value: master
+  workspaces:
+    - name: shared-workspace
+      persistentvolumeclaim:
+        claimName: golang-source-pvc
