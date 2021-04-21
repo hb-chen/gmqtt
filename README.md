@@ -35,9 +35,12 @@ $ cd api
 $ go run -tags "consul" main.go
 ```
 
-#### MQTT Web Client
-[在线演示](http://mqtt-client.hbchen.com/)
-> [Github源码](https://github.com/hb-chen/hivemq-mqtt-web-client)
+#### 在线演示
+- [MQTT Web Client](http://mqtt-client.hbchen.com/)
+  - [Github源码](https://github.com/hb-chen/hivemq-mqtt-web-client)
+- Gateway 测试服务
+  - `host`=`gmqtt.k8s.hbchen.com`
+  - `port`=`80`
 
 ## 组件
 - gateway
