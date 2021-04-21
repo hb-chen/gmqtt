@@ -8,8 +8,8 @@ spec:
   type: {{ .Values.service.type }}
   ports:
     - port: {{ .Values.service.port }}
-      targetPort: http
+      targetPort: ws
       protocol: TCP
-      name: http
+      name: ws
   selector:
     {{- include "gmqtt.selectorLabels" . | nindent 4 }}
