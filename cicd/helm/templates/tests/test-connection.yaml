@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "gmqtt.fullname" . }}-test-connection"
+  labels:
+    {{- include "gmqtt.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: wget
+      image: busybox
+      command: ['wget']
+      args: ['{{ include "gmqtt.fullname" . }}:{{ .Values.service.port }}']
+  restartPolicy: Never
