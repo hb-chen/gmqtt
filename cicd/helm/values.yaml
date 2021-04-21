@@ -47,7 +47,8 @@ ingress:
     # kubernetes.io/tls-acme: "true"
   hosts:
     - host: gmqtt.k8s.hbchen.com
-      paths: []
+      paths:
+        - path: /
   tls: []
   #  - secretName: chart-example-tls
   #    hosts:
