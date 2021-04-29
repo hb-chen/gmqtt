@@ -11,26 +11,18 @@ import (
 	"github.com/hb-chen/gmqtt/pkg/log"
 )
 
-func DefaultListenAndServeWebsocket() error {
-	if err := AddWebsocketHandler("/mqtt", "127.0.0.1:1883"); err != nil {
-		return err
-	}
-	return ListenAndServeWebsocket(":1234")
-}
-
-func AddWebsocketHandler(urlPattern string, uri string) error {
+func WebsocketHandler(urlPattern string, uri string) (websocket.Handler, error) {
 	log.Debugf("AddWebsocketHandler urlPattern=%s, uri=%s", urlPattern, uri)
 	u, err := url.Parse(uri)
 	if err != nil {
 		log.Errorf("web socket add handler error: %v", err)
-		return err
+		return nil, err
 	}
 
 	h := func(ws *websocket.Conn) {
 		WebsocketTcpProxy(ws, u.Scheme, u.Host)
 	}
-	http.Handle(urlPattern, websocket.Handler(h))
-	return nil
+	return h, nil
 }
 
 /* start a listener that proxies websocket <-> tcp */

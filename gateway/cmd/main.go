@@ -1,14 +1,19 @@
 package main
 
 import (
+	"context"
 	"flag"
+	"github.com/urfave/cli/v2"
+	"net/http"
+	"os"
+	"sync"
 
 	"net/url"
 
 	"github.com/pyroscope-io/pyroscope/pkg/agent/profiler"
 
 	"github.com/hb-chen/gmqtt/gateway/auth"
-	. "github.com/hb-chen/gmqtt/gateway/conf"
+	"github.com/hb-chen/gmqtt/gateway/conf"
 	"github.com/hb-chen/gmqtt/gateway/service"
 	"github.com/hb-chen/gmqtt/pkg/log"
 )
@@ -41,31 +46,24 @@ func init() {
 	})
 }
 
-func main() {
-	if *cmdHelp {
-		flag.PrintDefaults()
-		return
-	}
+func run(ctx *cli.Context) error {
+	confPath := ctx.String("conf")
 
 	// 配置初始化
-	if err := InitConfig(*confFilePath); err != nil {
-		log.Panic(err)
-		return
+	if err := conf.InitConfig(confPath); err != nil {
+		return err
 	}
 
-	u, err := url.Parse(Conf.Server.Addr)
+	u, err := url.Parse(conf.Conf.Server.Addr)
 	if err != nil {
-		log.Panic(err)
-		return
+		return err
 	}
-
-	// @TODO CMD参数覆盖Conf配置
 
 	log.SetColor(true)
-	log.SetLevel(Conf.LogLvl())
+	log.SetLevel(conf.Conf.LogLvl())
 
-	if Conf.Auth.Provider == auth.ProviderRpc {
-		closer := auth.NewRpcRegister(Conf.App.AccessKey, Conf.App.SecretKey, Conf.Auth.Addrs)
+	if conf.Conf.Auth.Provider == auth.ProviderRpc {
+		closer := auth.NewRpcRegister(conf.Conf.App.AccessKey, conf.Conf.App.SecretKey, conf.Conf.Auth.Addrs)
 		defer func() {
 			if err := closer.Close(); err != nil {
 				log.Warnf("rpc auth close error:%v", err)
@@ -73,19 +71,80 @@ func main() {
 		}()
 	}
 
-	if len(Conf.Server.WsAddr) > 0 {
-		service.AddWebsocketHandler("/mqtt", Conf.Server.Addr)
-		go service.ListenAndServeWebsocket(Conf.Server.WsAddr)
+	wg := &sync.WaitGroup{}
+	var wsServer *http.Server
+	if len(conf.Conf.Server.WsAddr) > 0 {
+		handler, err := service.WebsocketHandler("/mqtt", conf.Conf.Server.Addr)
+		if err != nil {
+			return err
+		}
+
+		wg.Add(1)
+		wsServer = &http.Server{Addr: conf.Conf.Server.WsAddr, Handler: handler}
+		go func() {
+			defer wg.Done()
+			if err := wsServer.ListenAndServe(); err != nil {
+				log.Fatal(err)
+			}
+		}()
 	}
 
 	server, err := service.NewServer()
 	if err != nil {
-		log.Panic(err)
-		return
+		return err
 	}
-	err = server.ListenAndServe(u.Scheme, u.Host)
-	if err != nil {
-		log.Panic(err)
-		return
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		if err = server.ListenAndServe(u.Scheme, u.Host); err != nil {
+			log.Fatal(err)
+		}
+	}()
+
+	<-ctx.Done()
+	if wsServer != nil {
+		wsServer.Shutdown(ctx.Context)
+	}
+	server.Close()
+	wg.Wait()
+
+	return nil
+}
+
+func main() {
+	app := cli.NewApp()
+
+	app.Flags = []cli.Flag{
+		&cli.StringFlag{
+			Name:    "conf",
+			EnvVars: []string{"GM_CONF"},
+			Usage:   "config file path.",
+			Value:   "conf/conf.toml",
+		},
+	}
+
+	app.Before = func(c *cli.Context) error {
+		return nil
+	}
+
+	app.Action = func(ctx *cli.Context) error {
+
+		return run(ctx)
+	}
+
+	app.Commands = cli.Commands{
+		&cli.Command{
+			Name:  "reload",
+			Usage: "TODO",
+			Action: func(ctx *cli.Context) error {
+				return nil
+			},
+		},
+	}
+
+	ctx := context.Background()
+	if err := app.RunContext(ctx, os.Args); err != nil {
+		log.Fatal(err)
 	}
 }

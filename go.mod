@@ -22,6 +22,7 @@ require (
 	github.com/streadway/amqp v1.0.0
 	github.com/stretchr/testify v1.7.0
 	github.com/surgemq/message v0.0.0-20151017233315-2b7ca1ac6121
+	github.com/urfave/cli/v2 v2.3.0 // indirect
 	github.com/xtaci/lossyconn v0.0.0-20200209145036-adba10fffc37 // indirect
 	golang.org/x/net v0.0.0-20210410081132-afb366fc7cd1
 	google.golang.org/grpc/examples v0.0.0-20210409234925-fab5982df20a // indirect
