@@ -16,6 +16,7 @@ require (
 	github.com/mailru/easygo v0.0.0-20190618140210-3c14a0dc985f
 	github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d
 	github.com/pborman/uuid v1.2.1
+	github.com/pyroscope-io/pyroscope v0.0.30
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475
 	github.com/smallnest/rpcx v1.6.2
 	github.com/streadway/amqp v1.0.0

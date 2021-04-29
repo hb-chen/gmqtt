@@ -2,7 +2,10 @@ package main
 
 import (
 	"flag"
+
 	"net/url"
+
+	"github.com/pyroscope-io/pyroscope/pkg/agent/profiler"
 
 	"github.com/hb-chen/gmqtt/gateway/auth"
 	. "github.com/hb-chen/gmqtt/gateway/conf"
@@ -19,6 +22,23 @@ var (
 
 func init() {
 	flag.Parse()
+
+	profiler.Start(profiler.Config{
+		ApplicationName: "com.hbchen.gmqtt",
+
+		// replace this with the address of pyroscope server
+		ServerAddress: "http://pyroscope.pyroscope.svc.cluster.local:4040",
+
+		// by default all profilers are enabled,
+		//   but you can select the ones you want to use:
+		ProfileTypes: []profiler.ProfileType{
+			profiler.ProfileCPU,
+			profiler.ProfileAllocObjects,
+			profiler.ProfileAllocSpace,
+			profiler.ProfileInuseObjects,
+			profiler.ProfileInuseSpace,
+		},
+	})
 }
 
 func main() {
