@@ -27,4 +27,5 @@ require (
 	golang.org/x/net v0.0.0-20210410081132-afb366fc7cd1
 	google.golang.org/grpc/examples v0.0.0-20210409234925-fab5982df20a // indirect
 	gopkg.in/bsm/sarama-cluster.v2 v2.1.15
+	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
 )

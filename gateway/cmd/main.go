@@ -4,8 +4,12 @@ import (
 	"context"
 	"flag"
 	"github.com/urfave/cli/v2"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+	"gopkg.in/natefinch/lumberjack.v2"
 	"net/http"
 	"os"
+	"strings"
 	"sync"
 
 	"net/url"
@@ -18,6 +22,10 @@ import (
 	"github.com/hb-chen/gmqtt/pkg/log"
 )
 
+const (
+	logCallerSkip = 2
+)
+
 var (
 	cmdHelp      = flag.Bool("h", false, "帮助")
 	confFilePath = flag.String("conf", "conf/conf.toml", "配置文件路径")
@@ -27,6 +35,11 @@ var (
 
 func init() {
 	flag.Parse()
+
+	l, err := initLogger("./log", "DEBUG", true, true)
+	if err != nil {
+		panic(err)
+	}
 
 	profiler.Start(profiler.Config{
 		ApplicationName: "com.hbchen.gmqtt",
@@ -43,7 +56,59 @@ func init() {
 			profiler.ProfileInuseObjects,
 			profiler.ProfileInuseSpace,
 		},
+
+		Logger: l.Sugar(),
 	})
+}
+
+func initLogger(path, level string, debug, e bool) (*zap.Logger, error) {
+	logLevel := zapcore.WarnLevel
+	err := logLevel.UnmarshalText([]byte(level))
+	if err != nil {
+		return nil, err
+	}
+
+	writer := logWriter(path)
+	if e {
+		stderr, close, err := zap.Open("stderr")
+		if err != nil {
+			close()
+			return nil, err
+		}
+		writer = stderr
+	}
+
+	encoder := logEncoder(debug)
+	core := zapcore.NewCore(encoder, writer, logLevel)
+	logger := zap.New(core, zap.AddCaller(), zap.AddCallerSkip(logCallerSkip))
+
+	return logger, nil
+}
+
+func logEncoder(debug bool) zapcore.Encoder {
+	encoderConfig := zap.NewProductionEncoderConfig()
+	encoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
+	encoderConfig.EncodeLevel = zapcore.CapitalLevelEncoder
+
+	if debug {
+		encoderConfig = zap.NewDevelopmentEncoderConfig()
+		encoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+		encoderConfig.EncodeCaller = zapcore.ShortCallerEncoder
+	}
+
+	return zapcore.NewConsoleEncoder(encoderConfig)
+}
+
+func logWriter(path string) zapcore.WriteSyncer {
+	path = strings.TrimRight(path, "/")
+	lumberJackLogger := &lumberjack.Logger{
+		Filename:   path + "/gmqtt.log",
+		MaxSize:    10,
+		MaxBackups: 10,
+		MaxAge:     7,
+		Compress:   false,
+	}
+	return zapcore.AddSync(lumberJackLogger)
 }
 
 func run(ctx *cli.Context) error {
