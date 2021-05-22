@@ -2,45 +2,30 @@ package main
 
 import (
 	"context"
-	"flag"
-	"github.com/urfave/cli/v2"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
-	"gopkg.in/natefinch/lumberjack.v2"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 	"sync"
 
-	"net/url"
-
+	"github.com/pyroscope-io/pyroscope/pkg/agent"
 	"github.com/pyroscope-io/pyroscope/pkg/agent/profiler"
+	"github.com/urfave/cli/v2"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+	"gopkg.in/natefinch/lumberjack.v2"
 
 	"github.com/hb-chen/gmqtt/gateway/auth"
 	"github.com/hb-chen/gmqtt/gateway/conf"
 	"github.com/hb-chen/gmqtt/gateway/service"
-	"github.com/hb-chen/gmqtt/pkg/log"
+	"github.com/hb-go/pkg/log"
 )
 
 const (
 	logCallerSkip = 2
 )
 
-var (
-	cmdHelp      = flag.Bool("h", false, "帮助")
-	confFilePath = flag.String("conf", "conf/conf.toml", "配置文件路径")
-	//addr         = flag.String("addr", "tcp://127.0.0.1:1883", "server address")
-	//etcdAddrs    = flag.String("etcdAddrs", "127.0.0.1:2379", "etcd address")
-)
-
-func init() {
-	flag.Parse()
-
-	l, err := initLogger("./log", "DEBUG", true, true)
-	if err != nil {
-		panic(err)
-	}
-
+func pyroscope(logger agent.Logger) {
 	profiler.Start(profiler.Config{
 		ApplicationName: "com.hbchen.gmqtt",
 
@@ -57,7 +42,7 @@ func init() {
 			profiler.ProfileInuseSpace,
 		},
 
-		Logger: l.Sugar(),
+		Logger: logger,
 	})
 }
 
@@ -112,20 +97,24 @@ func logWriter(path string) zapcore.WriteSyncer {
 }
 
 func run(ctx *cli.Context) error {
-	confPath := ctx.String("conf")
-
 	// 配置初始化
-	if err := conf.InitConfig(confPath); err != nil {
+	if err := conf.InitConfig(ctx); err != nil {
 		return err
+	}
+
+	l, err := initLogger("./log", conf.Conf.Log.Level, conf.Conf.Log.Debug, conf.Conf.Log.E)
+	if err != nil {
+		panic(err)
+	}
+
+	if conf.Conf.Pyroscope.Enable {
+		pyroscope(l.Sugar())
 	}
 
 	u, err := url.Parse(conf.Conf.Server.Addr)
 	if err != nil {
 		return err
 	}
-
-	log.SetColor(true)
-	log.SetLevel(conf.Conf.LogLvl())
 
 	if conf.Conf.Auth.Provider == auth.ProviderRpc {
 		closer := auth.NewRpcRegister(conf.Conf.App.AccessKey, conf.Conf.App.SecretKey, conf.Conf.Auth.Addrs)
@@ -182,7 +171,7 @@ func main() {
 
 	app.Flags = []cli.Flag{
 		&cli.StringFlag{
-			Name:    "conf",
+			Name:    "config_path",
 			EnvVars: []string{"GM_CONF"},
 			Usage:   "config file path.",
 			Value:   "conf/conf.toml",

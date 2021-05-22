@@ -1,5 +1,11 @@
 # default DEBUG, DEBUG INFO WARN ERROR OFF
-log_level = "DEBUG"
+[log]
+level = "DEBUG"
+debug = true
+e = true
+
+[pyroscope]
+enable = false
 
 [app]
 name = "Micro MQ"

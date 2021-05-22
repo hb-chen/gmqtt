@@ -13,6 +13,7 @@ require (
 	github.com/go-redis/redis v6.15.9+incompatible
 	github.com/golang/protobuf v1.5.2
 	github.com/gomodule/redigo v1.8.4 // indirect
+	github.com/hb-go/pkg v0.0.0-20210513173633-7fea6be50923
 	github.com/mailru/easygo v0.0.0-20190618140210-3c14a0dc985f
 	github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d
 	github.com/pborman/uuid v1.2.1

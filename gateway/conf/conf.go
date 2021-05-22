@@ -1,22 +1,24 @@
 package conf
 
 import (
-	"errors"
-	"io/ioutil"
-	"os"
-
-	"github.com/BurntSushi/toml"
+	"github.com/hb-go/pkg/config"
+	"github.com/hb-go/pkg/config/source"
+	cliSource "github.com/hb-go/pkg/config/source/cli"
+	"github.com/hb-go/pkg/config/source/file"
+	"github.com/hb-go/pkg/log"
 	"github.com/pborman/uuid"
-
-	"github.com/hb-chen/gmqtt/pkg/log"
+	"github.com/urfave/cli/v2"
 )
 
 var (
-	Conf              config // holds the global app config.
+	Conf              Config // holds the global app config.
 	defaultConfigFile = "conf/conf.toml"
 )
 
-type config struct {
+type Config struct {
+	Log       Log
+	Pyroscope Pyroscope
+
 	logLevel string `toml:"log_level"`
 
 	SessionStore string `toml:"session_store"`
@@ -41,6 +43,16 @@ type config struct {
 
 	// Opentracing
 	Opentracing opentracing
+}
+
+type Log struct {
+	Level string
+	Debug bool
+	E     bool
+}
+
+type Pyroscope struct {
+	Enable bool
 }
 
 type app struct {
@@ -99,29 +111,30 @@ func init() {
 // initConfig initializes the app configuration by first setting defaults,
 // then overriding settings from the app config file, then overriding
 // It returns an error if any.
-func InitConfig(configFile string) error {
-	if configFile == "" {
-		configFile = defaultConfigFile
+func InitConfig(ctx *cli.Context) error {
+
+	c, err := config.NewConfig()
+	if err != nil {
+		return err
 	}
 
+	sources := make([]source.Source, 0)
+	// 1.file source
+	if configFile := ctx.String("config_path"); len(configFile) > 0 {
+		sources = append(sources, file.NewSource(file.WithPath(configFile)))
+	}
+	// 2.cli source
+	sources = append(sources, cliSource.WithContext(ctx))
+	c.Load(
+		sources...,
+	)
+
 	// Set defaults.
-	Conf = config{
+	Conf = Config{
 		logLevel: "DEBUG",
 	}
 
-	if _, err := os.Stat(configFile); err != nil {
-		return errors.New("config file err:" + err.Error())
-	} else {
-		log.Infof("load config from file:" + configFile)
-		configBytes, err := ioutil.ReadFile(configFile)
-		if err != nil {
-			return errors.New("config load err:" + err.Error())
-		}
-		_, err = toml.Decode(string(configBytes), &Conf)
-		if err != nil {
-			return errors.New("config decode err:" + err.Error())
-		}
-	}
+	c.Scan(&Conf)
 
 	// @TODO 实例ID
 	if len(Conf.Server.Id) == 0 {
@@ -134,7 +147,7 @@ func InitConfig(configFile string) error {
 	return nil
 }
 
-func (c config) LogLvl() log.Lvl {
+func (c Config) LogLvl() log.Lvl {
 	//DEBUG INFO WARN ERROR OFF
 	switch c.logLevel {
 	case "DEBUG":
