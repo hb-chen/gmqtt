@@ -174,7 +174,7 @@ func main() {
 			Name:    "config_path",
 			EnvVars: []string{"GM_CONF"},
 			Usage:   "config file path.",
-			Value:   "conf/conf.toml",
+			Value:   "conf/conf.yaml",
 		},
 	}
 
