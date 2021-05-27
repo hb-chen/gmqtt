@@ -1,0 +1,31 @@
+app:
+  name: gmqtt
+  access_key: ak
+  secret_key: sk
+
+server:
+  addr: tcp://127.0.0.1:1883
+  ws_addr: ：8080
+
+auth:
+  # MockSuccess、MockFailure、rpc
+  provider: MockSuccess
+  # rpc 注册中心地址
+  addrs:
+    - 127.0.0.1:8500
+
+broker:
+  # mock、kafka，默认mock
+  provider: mock
+  addrs:
+
+sessions:
+  # mock、redis，默认mock
+  provider: mock
+
+redis:
+  server: 127.0.0.1:6379
+  pwd: 123456
+
+memcached:
+  server: 127.0.0.1:11211

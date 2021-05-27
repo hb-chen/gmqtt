@@ -170,11 +170,11 @@ func main() {
 	app := cli.NewApp()
 
 	app.Flags = []cli.Flag{
-		&cli.StringFlag{
-			Name:    "config_path",
-			EnvVars: []string{"GM_CONF"},
-			Usage:   "config file path.",
-			Value:   "conf/conf.yaml",
+		&cli.StringSliceFlag{
+			Name:    "config_patterns",
+			EnvVars: []string{"GM_CONFIG_PATTERNS"},
+			Usage:   "config files patterns.",
+			Value:   cli.NewStringSlice("./conf.d/*.yaml"),
 		},
 	}
 

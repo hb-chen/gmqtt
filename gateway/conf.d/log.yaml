@@ -1,0 +1,7 @@
+log:
+  # default DEBUG, DEBUG INFO WARN ERROR OFF
+  level: DEBUG
+  # debug 模式输出日志
+  debug: true
+  # 标准输出
+  e: true

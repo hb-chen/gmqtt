@@ -1,0 +1,11 @@
+opentracing:
+  disable: false
+  # jaeger or appdash
+  type: jaeger
+
+  # jaeger serviceName
+  service_name: gmqtt
+
+  # jaeger-agent 127.0.0.1:6831
+  # appdash http://localhost:8700
+  address: 127.0.0.1:6831

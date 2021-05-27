@@ -8,6 +8,8 @@ import (
 	"github.com/hb-go/pkg/log"
 	"github.com/pborman/uuid"
 	"github.com/urfave/cli/v2"
+	"os"
+	"path/filepath"
 )
 
 var (
@@ -112,17 +114,36 @@ func init() {
 // then overriding settings from the app config file, then overriding
 // It returns an error if any.
 func InitConfig(ctx *cli.Context) error {
-
 	c, err := config.NewConfig()
 	if err != nil {
 		return err
 	}
 
 	sources := make([]source.Source, 0)
-	// 1.file source
-	if configFile := ctx.String("config_path"); len(configFile) > 0 {
-		sources = append(sources, file.NewSource(file.WithPath(configFile)))
+
+	// 1.files source
+	patterns := ctx.StringSlice("config_patterns")
+	for _, p := range patterns {
+		files, err := filepath.Glob(p)
+		if err != nil {
+			return err
+		}
+
+		for _, f := range files {
+			fileInfo, err := os.Lstat(f)
+			if err != nil {
+				return err
+			}
+
+			if fileInfo.IsDir() {
+				log.Debugf("skipping directory: %s", f)
+				continue
+			}
+
+			sources = append(sources, file.NewSource(file.WithPath(f)))
+		}
 	}
+
 	// 2.cli source
 	sources = append(sources, cliSource.WithContext(ctx))
 	c.Load(
