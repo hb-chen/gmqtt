@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+import "github.com/hb-chen/gmqtt/pkg/api/cluster/proto/clients/clients.proto";
+import "github.com/hb-chen/gmqtt/pkg/api/cluster/proto/topics/topics.proto";
+
+package subscriptions;
+
+message SubscriptionsReq {
+    int64 page = 1;
+    int64 size = 2;
+}
+
+message SubscriptionsResp {
+    repeated Subscriptition subscriptions = 1;
+}
+
+message Subscriptition {
+    clients.Client client = 1;
+    topics.Topic topic = 2;
+}

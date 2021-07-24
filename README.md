@@ -146,3 +146,5 @@ kafka-manager.zkhosts="localhost:2181"
 - [SurgeMQ](https://github.com/surgemq/surgemq)
 - [Micro](http://github.com/micro)
 - [Managing IoT devices with Kafka and MQTT](https://www.ibm.com/blogs/bluemix/2017/01/managing-iot-devices-with-kafka-and-mqtt/)
+- [MQTT QoS（服务质量）介绍](https://www.emqx.cn/blog/introduction-to-mqtt-qos)
+- [StreamNative 宣布开源 MoP：Apache Pulsar 支持原生 MQTT 协议](https://segmentfault.com/a/1190000025167243)

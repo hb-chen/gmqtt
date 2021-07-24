@@ -3,8 +3,8 @@ module github.com/hb-chen/gmqtt
 go 1.15
 
 require (
-	github.com/BurntSushi/toml v0.3.1
 	github.com/Shopify/sarama v1.28.0
+	github.com/apache/pulsar-client-go v0.5.0
 	github.com/bsm/sarama-cluster v2.1.15+incompatible // indirect
 	github.com/casbin/casbin v1.9.1
 	github.com/casbin/redis-adapter v1.0.0
@@ -23,10 +23,11 @@ require (
 	github.com/streadway/amqp v1.0.0
 	github.com/stretchr/testify v1.7.0
 	github.com/surgemq/message v0.0.0-20151017233315-2b7ca1ac6121
-	github.com/urfave/cli/v2 v2.3.0 // indirect
+	github.com/urfave/cli/v2 v2.3.0
 	github.com/xtaci/lossyconn v0.0.0-20200209145036-adba10fffc37 // indirect
+	go.uber.org/zap v1.15.0
 	golang.org/x/net v0.0.0-20210410081132-afb366fc7cd1
 	google.golang.org/grpc/examples v0.0.0-20210409234925-fab5982df20a // indirect
 	gopkg.in/bsm/sarama-cluster.v2 v2.1.15
-	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
+	gopkg.in/natefinch/lumberjack.v2 v2.0.0
 )
