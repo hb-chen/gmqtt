@@ -23,3 +23,11 @@ api:
 .PHONY: docker
 docker: build
 	docker build . -t $(tag)
+
+.PHONY: release
+release:
+	goreleaser release --config .goreleaser.yml --skip-validate --skip-publish --rm-dist
+
+.PHONY: snapshot
+snapshot:
+	goreleaser release --config .goreleaser.yml --skip-publish --snapshot --rm-dist
