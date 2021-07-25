@@ -2,9 +2,11 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"net/url"
 	"os"
+	"runtime"
 	"strings"
 	"sync"
 
@@ -23,6 +25,14 @@ import (
 
 const (
 	logCallerSkip = 2
+)
+
+var (
+	version   = ""
+	commit    = ""
+	date      = ""
+	builtBy   = ""
+	goVersion = runtime.Version()
 )
 
 func pyroscope(logger agent.Logger) {
@@ -168,6 +178,15 @@ func run(ctx *cli.Context) error {
 
 func main() {
 	app := cli.NewApp()
+
+	app.Name = "gmqtt-gateway"
+	app.Description = "MQTT broker"
+	app.Version = fmt.Sprintf("%v\ncommit: %v\nbuilt at: %v\nbuilt by: %v\ngo version: %v",
+		version,
+		commit,
+		date,
+		builtBy,
+		goVersion)
 
 	app.Flags = []cli.Flag{
 		&cli.StringSliceFlag{
