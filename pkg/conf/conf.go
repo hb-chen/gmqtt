@@ -13,18 +13,17 @@ import (
 )
 
 var (
-	Conf              Config // holds the global app config.
-	defaultConfigFile = "conf/conf.toml"
+	Conf Config // holds the global app config.
 )
 
 type Config struct {
 	Log       Log
 	Pyroscope Pyroscope
 
-	logLevel string `toml:"log_level"`
+	logLevel string `json:"log_level"`
 
-	SessionStore string `toml:"session_store"`
-	CacheStore   string `toml:"cache_store"`
+	SessionStore string `json:"session_store"`
+	CacheStore   string `json:"cache_store"`
 
 	// 应用配置
 	App app
@@ -38,7 +37,7 @@ type Config struct {
 	Sessions sessions
 
 	// MySQL、PostgreSQL
-	DB database `toml:"database"`
+	DB database `json:"database"`
 
 	// Redis
 	Redis redis
@@ -58,53 +57,53 @@ type Pyroscope struct {
 }
 
 type app struct {
-	Name      string `toml:"name"`
-	AccessKey string `toml:"access_key"`
-	SecretKey string `toml:"secret_key"`
+	Name      string `json:"name"`
+	AccessKey string `json:"access_key"`
+	SecretKey string `json:"secret_key"`
 }
 
 type server struct {
 	Id     string
-	Addr   string `toml:"addr"`
-	WsAddr string `toml:"ws_addr"`
+	Addr   string `json:"addr"`
+	WsAddr string `json:"ws_addr"`
 }
 
 type auth struct {
-	Provider string   `toml:"provider"` // MockSuccess、MockFailure、rpc
-	Addrs    []string `toml:"addrs"`
+	Provider string   `json:"provider"` // MockSuccess、MockFailure、rpc
+	Addrs    []string `json:"addrs"`
 }
 
 type broker struct {
-	Provider string   `toml:"provider"` // mock、kafka
-	Addrs    []string `toml:"addrs"`
+	Provider string   `json:"provider"` // mock、kafka
+	Addrs    []string `json:"addrs"`
 }
 
 type sessions struct {
-	Provider string `toml:"provider"` // mock、redis
+	Provider string `json:"provider"` // mock、redis
 }
 
 type database struct {
-	Name     string `toml:"name"`
-	UserName string `toml:"user_name"`
-	Pwd      string `toml:"pwd"`
-	Host     string `toml:"host"`
-	Port     string `toml:"port"`
+	Name     string `json:"name"`
+	UserName string `json:"user_name"`
+	Pwd      string `json:"pwd"`
+	Host     string `json:"host"`
+	Port     string `json:"port"`
 }
 
 type redis struct {
-	Server string `toml:"server"`
-	Pwd    string `toml:"pwd"`
+	Server string `json:"server"`
+	Pwd    string `json:"pwd"`
 }
 
 type memcached struct {
-	Server string `toml:"server"`
+	Server string `json:"server"`
 }
 
 type opentracing struct {
-	Disable     bool   `toml:"disable"`
-	Type        string `toml:"type"`
-	ServiceName string `toml:"service_name"`
-	Address     string `toml:"address"`
+	Disable     bool   `json:"disable"`
+	Type        string `json:"type"`
+	ServiceName string `json:"service_name"`
+	Address     string `json:"address"`
 }
 
 func init() {
