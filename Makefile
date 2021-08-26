@@ -6,7 +6,8 @@ test:
 
 .PHONY: run
 run:
-	go run cmd/main.go
+	test -n "$(cmd)"
+	go run cmd/$(cmd)/main.go --config_patterns ./config/$(cmd)/*.yaml
 
 .PHONY: gateway
 gateway:
