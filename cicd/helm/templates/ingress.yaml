@@ -13,6 +13,7 @@ metadata:
     {{- include "gmqtt.labels" . | nindent 4 }}
   {{- with .Values.ingress.annotations }}
   annotations:
+    kubernetes.io/ingress.class: nginx
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
