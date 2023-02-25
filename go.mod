@@ -4,13 +4,13 @@ go 1.15
 
 require (
 	github.com/Shopify/sarama v1.28.0
-	github.com/apache/pulsar-client-go v0.5.0
 	github.com/bsm/sarama-cluster v2.1.15+incompatible // indirect
 	github.com/casbin/casbin v1.9.1
 	github.com/casbin/redis-adapter v1.0.0
 	github.com/eclipse/paho.mqtt.golang v1.3.3
 	github.com/fatih/color v1.10.0
 	github.com/go-redis/redis v6.15.9+incompatible
+	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/protobuf v1.5.2
 	github.com/gomodule/redigo v1.8.4 // indirect
 	github.com/hb-go/pkg v0.0.0-20210513173633-7fea6be50923
@@ -25,8 +25,9 @@ require (
 	github.com/surgemq/message v0.0.0-20151017233315-2b7ca1ac6121
 	github.com/urfave/cli/v2 v2.3.0
 	github.com/xtaci/lossyconn v0.0.0-20200209145036-adba10fffc37 // indirect
+	go.uber.org/atomic v1.7.0 // indirect
 	go.uber.org/zap v1.15.0
-	golang.org/x/net v0.0.0-20210410081132-afb366fc7cd1
+	golang.org/x/net v0.7.0
 	google.golang.org/grpc/examples v0.0.0-20210409234925-fab5982df20a // indirect
 	gopkg.in/bsm/sarama-cluster.v2 v2.1.15
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0
